@@ -2,3 +2,9 @@ sudo apt-get update
 sudo apt-get install openssl
 sudo apt-get install libssl-dev
 
+export OPENSSLDIR=/usr/include/openssl
+
+mkdir obj
+
+sudo make install
+# sudo make install optimize=1 debug=0

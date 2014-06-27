@@ -8,3 +8,13 @@ mkdir obj
 
 sudo make install
 # sudo make install optimize=1 debug=0
+
+sudo yum update
+sudo yum install gcc
+sudo yum install patch
+sudo yum install openssl
+sudo yum install openssl-devel
+
+make optimize=1 debug=0
+sudo make install
+

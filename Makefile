@@ -80,10 +80,10 @@ LD=gcc
 LDFLAGS=-L./lib -L$(OPENSSLDIR)/lib
 
 # Link Libraries. In some cases, plese add -lidn, or -lldap
-LIBS= -lcurl -levent -lz -lssl -lcrypto -lcares -ldl -lpthread -lnsl -lrt -lresolv
+LIBS= -lcurl -levent -lz -lssl -lcrypto -lcares -ldl -lpthread -lnsl -lrt -lresolv -lhiredis
 
 # Include directories
-INCDIR=-I. -I./inc -I$(OPENSSLDIR)/include
+INCDIR=-I. -I./inc -I$(OPENSSLDIR)/include -I/usr/local/include/hiredis
 
 # Targets
 LIBCARES:=./lib/libcares.a

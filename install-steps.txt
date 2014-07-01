@@ -6,9 +6,10 @@ export OPENSSLDIR=/usr/include/openssl
 
 mkdir obj
 
+make optimize=1 debug=0
 sudo make install
-# sudo make install optimize=1 debug=0
 
+##RHEL (AWS Linux) instructions
 sudo yum update
 sudo yum install gcc
 sudo yum install patch
@@ -16,6 +17,7 @@ sudo yum install openssl
 sudo yum install openssl-devel
 sudo yum install hiredis-devel
 
+export OPENSSLDIR=/usr/include/openssl
+
 make optimize=1 debug=0
 sudo make install
-

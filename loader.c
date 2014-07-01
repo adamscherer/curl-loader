@@ -58,6 +58,7 @@
 #include "screen.h"
 #include "cl_alloc.h"
 
+#include "hiredis.h"
 
 static int client_tracing_function (CURL *handle, 
                              curl_infotype type, 
@@ -195,6 +196,34 @@ main (int argc, char *argv [])
 
   screen_init ();
   
+  redisContext *c;
+  redisReply *reply;
+  const char *hostname = "23.20.246.236";
+  int port = 6379;
+
+  struct timeval timeout = { 1, 500000 }; // 1.5 seconds
+  c = redisConnectWithTimeout(hostname, port, timeout);
+  if (c == NULL || c->err) {
+    if (c) {
+      printf("Connection error: %s\n", c->errstr);
+      redisFree(c);
+    } else {
+      printf("Connection error: can't allocate redis context\n");
+    }
+
+    //exit(1);
+  }
+
+  /* PING server */
+  reply = redisCommand(c,"PING");
+  fprintf(stderr, "PING: %s\n", reply->str);
+  freeReplyObject(reply);
+
+  /* Set a key */
+  reply = redisCommand(c,"SET %s %s", "adam", "hello world");
+  printf("SET: %s\n", reply->str);
+  freeReplyObject(reply);
+
   if (! threads_subbatches_num)
     {
       fprintf (stderr, "\nRUNNING LOAD\n\n");

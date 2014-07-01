@@ -14,6 +14,7 @@ sudo yum install gcc
 sudo yum install patch
 sudo yum install openssl
 sudo yum install openssl-devel
+sudo yum install hiredis-devel
 
 make optimize=1 debug=0
 sudo make install

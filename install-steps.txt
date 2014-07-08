@@ -9,6 +9,8 @@ mkdir obj
 sudo make install
 # sudo make install optimize=1 debug=0
 
+# Modify /etc/yum.repos.d/epel.repo. Under the section marked [epel], change enabled=0 to enabled=1.
+
 sudo yum update
 sudo yum install gcc
 sudo yum install patch

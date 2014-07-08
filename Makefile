@@ -83,7 +83,7 @@ LDFLAGS=-L./lib -L$(OPENSSLDIR)/lib
 LIBS= -lcurl -levent -lz -lssl -lcrypto -lcares -ldl -lpthread -lnsl -lrt -lresolv -lhiredis
 
 # Include directories
-INCDIR=-I. -I./inc -I$(OPENSSLDIR)/include -I/usr/local/include/hiredis
+INCDIR=-I. -I./inc -I$(OPENSSLDIR)/include -I/usr/include/hiredis
 
 # Targets
 LIBCARES:=./lib/libcares.a

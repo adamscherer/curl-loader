@@ -195,7 +195,8 @@ main (int argc, char *argv [])
   signal (SIGINT, sigint_handler);
 
   screen_init ();
-  
+
+/*  
   redisContext *c;
   redisReply *reply;
   const char *hostname = "23.20.246.236";
@@ -214,16 +215,14 @@ main (int argc, char *argv [])
     //exit(1);
   }
 
-  /* PING server */
   reply = redisCommand(c,"PING");
   fprintf(stderr, "PING: %s\n", reply->str);
   freeReplyObject(reply);
 
-  /* Set a key */
   reply = redisCommand(c,"SET %s %s", "adam", "hello world");
   printf("SET: %s\n", reply->str);
   freeReplyObject(reply);
-
+*/
   if (! threads_subbatches_num)
     {
       fprintf (stderr, "\nRUNNING LOAD\n\n");

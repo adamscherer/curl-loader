@@ -371,10 +371,10 @@ void dump_final_statistics (client_context* cctx)
   stat_point_add (&bctx->http_total, &bctx->http_delta);
   stat_point_add (&bctx->https_total, &bctx->https_delta); 
     
-  fprintf(stdout,"\n==================================================="
+  fprintf(stderr,"\n==================================================="
           "====================================\n");
-  fprintf(stdout,"End of the test for batch: %-10.10s\n", bctx->batch_name); 
-  fprintf(stdout,"======================================================"
+  fprintf(stderr,"End of the test for batch: %-10.10s\n", bctx->batch_name); 
+  fprintf(stderr,"======================================================"
           "=================================\n\n");
   
   now = get_tick_count();
@@ -476,7 +476,7 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
 {
   if (!stop_loading)
     {
-      fprintf(stdout, "\033[2J");
+      fprintf(stderr, "\033[2J");
     }
 
   int i;
@@ -498,16 +498,16 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
       seconds_run = 1;
     }
 
-  fprintf(stdout,"--------------------------------------------------------------------------------\n");
+  fprintf(stderr,"--------------------------------------------------------------------------------\n");
 
-  fprintf(stdout,"Summary stats (runs:%d secs, CAPS-average:%ld):\n", 
+  fprintf(stderr,"Summary stats (runs:%d secs, CAPS-average:%ld):\n", 
           seconds_run, bctx->op_total.call_init_count / seconds_run); 
   
   dump_statistics (seconds_run, 
                    &bctx->http_total,
                    &bctx->https_total);
 
-  fprintf(stdout,"============================================================"
+  fprintf(stderr,"============================================================"
           "=====================\n");
 
   long total_clients_rampup_inc = 0;
@@ -522,7 +522,7 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
   if (bctx->do_client_num_gradual_increase && 
       (bctx->stop_client_num_gradual_increase == 0))
     {
-      fprintf(stdout," Automatic: adding %ld clients/sec. Stop inc and manual [M].\n",
+      fprintf(stderr," Automatic: adding %ld clients/sec. Stop inc and manual [M].\n",
               total_clients_rampup_inc);
     }
   else
@@ -530,22 +530,22 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
       const int current_clients =
         pending_active_and_waiting_clients_num_stat (bctx);
 
-      fprintf(stdout," Manual: clients:max[%d],curr[%d]. Inc num: [+|*].",
+      fprintf(stderr," Manual: clients:max[%d],curr[%d]. Inc num: [+|*].",
               total_client_num_max, total_current_clients);
 
       if (bctx->stop_client_num_gradual_increase && 
           bctx->clients_rampup_inc &&
           current_clients < bctx->client_num_max)
         {
-          fprintf(stdout," Automatic: [A].\n");
+          fprintf(stderr," Automatic: [A].\n");
         }
       else
         {
-          fprintf(stdout,"\n");
+          fprintf(stderr,"\n");
         }
     }
 
-  fprintf(stdout,"============================================================"
+  fprintf(stderr,"============================================================"
           "=====================\n");
   fflush (stdout);
 }
@@ -601,7 +601,7 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
       exit (1); 
     }
 
-  fprintf(stdout,"============  loading batch is: %-10.10s ===================="
+  fprintf(stderr,"============  loading batch is: %-10.10s ===================="
           "==================\n",
           bctx->batch_name);
 
@@ -626,9 +626,9 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
                                 bctx->url_ctx_array);
 
 
-  fprintf(stdout,"--------------------------------------------------------------------------------\n");
+  fprintf(stderr,"--------------------------------------------------------------------------------\n");
 
-  fprintf(stdout,"Interval stats (latest:%ld sec, clients:%d, CAPS-curr:%ld):\n",
+  fprintf(stderr,"Interval stats (latest:%ld sec, clients:%d, CAPS-curr:%ld):\n",
           (unsigned long ) delta_time/1000, clients_total_num,
           bctx->op_delta.call_init_count* 1000/delta_time);
 
@@ -723,14 +723,13 @@ static void dump_stat_to_screen (char* protocol,
                                  stat_point* sd, 
                                  unsigned long period)
 {
-  fprintf(stdout, "%sReq:%ld,1xx:%ld,2xx:%ld,3xx:%ld,4xx:%ld,5xx:%ld,Err:%ld,T-Err:%ld,"
+  fprintf(stderr, "%sReq:%ld,1xx:%ld,2xx:%ld,3xx:%ld,4xx:%ld,5xx:%ld,Err:%ld,T-Err:%ld,"
           "D:%ldms,D-2xx:%ldms,Ti:%lldB/s,To:%lldB/s\n",
           protocol, sd->requests, sd->resp_1xx, sd->resp_2xx, sd->resp_3xx,
           sd->resp_4xx, sd->resp_5xx, sd->other_errs, sd->url_timeout_errs, sd->appl_delay, 
           sd->appl_delay_2xx, sd->data_in/period, sd->data_out/period);
 
-    //fprintf (stdout, "Appl-Delay-Points %d, Appl-Delay-2xx-Points %d \n", 
-  //         sd->appl_delay_points, sd->appl_delay_2xx_points);
+  //fprintf(stdout, "{'protocol': '%s', 'total': %ld}", protocol, sd->requests);
 }
 
 /****************************************************************************************
@@ -870,6 +869,9 @@ static void print_operational_statistics (FILE *opstats_file,
                    osp_curr->url_ok[i], osp_total->url_ok[i],
                    osp_curr->url_failed[i], osp_total->url_failed[i],
                    osp_curr->url_timeouted[i], osp_total->url_timeouted[i]);
+  
+          fprintf(stdout, "{'url': '%s', 'success': %ld, 'fail': %ld, 'timeout': %ld}",
+                     url_arr[i].url_str, osp_total->url_ok[i], osp_total->url_failed[i], osp_total->url_timeouted[i]);
         }
     }
 }

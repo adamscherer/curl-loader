@@ -78,12 +78,13 @@ LD=gcc
 
 #Linker Flags
 LDFLAGS=-L./lib -L$(OPENSSLDIR)/lib
+LDFLAGS += $(shell pkg-config --libs json)
 
 # Link Libraries. In some cases, plese add -lidn, or -lldap
-LIBS= -lcurl -levent -lz -lssl -lcrypto -lcares -ldl -lpthread -lnsl -lrt -lresolv -lhiredis
+LIBS= -lcurl -levent -lz -lssl -lcrypto -lcares -ldl -lpthread -lnsl -lrt -lresolv -lhiredis -ljson
 
 # Include directories
-INCDIR=-I. -I./inc -I$(OPENSSLDIR)/include -I/usr/include/hiredis
+INCDIR=-I. -I./inc -I$(OPENSSLDIR)/include -I/usr/include/hiredis -I/usr/include/json
 
 # Targets
 LIBCARES:=./lib/libcares.a

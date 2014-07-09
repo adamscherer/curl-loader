@@ -17,6 +17,8 @@ sudo yum install patch
 sudo yum install openssl
 sudo yum install openssl-devel
 sudo yum install hiredis-devel
+sudo yum install json-c-devel
+sudo yum install nodejs npm
 
 make optimize=1 debug=0
 sudo make install

@@ -9,6 +9,7 @@ sudo yum install openssl
 sudo yum install openssl-devel
 sudo yum install hiredis-devel
 sudo yum install nodejs npm
+sudo yum install json-c-devel
 
 export OPENSSLDIR=/usr/include/openssl
 

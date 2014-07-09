@@ -104,6 +104,14 @@ typedef struct op_stat_point
   /* Array of url counters for timeouted fetches */
   unsigned long* url_timeouted;
 
+  unsigned long* url_min;
+
+  unsigned long* url_max;
+
+  unsigned long* url_avg;
+
+  unsigned long* url_last;
+
   /* Used for CAPS calculation */
   unsigned long call_init_count;
 

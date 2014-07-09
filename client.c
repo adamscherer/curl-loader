@@ -174,12 +174,14 @@ void stat_3xx_inc (client_context* cctx)
   cctx->is_https ? cctx->bctx->https_delta.resp_3xx++ :
     cctx->bctx->http_delta.resp_3xx++;
 }
+
 void stat_4xx_inc (client_context* cctx)
 {
   cctx->st.resp_4xx++;
   cctx->is_https ? cctx->bctx->https_delta.resp_4xx++ :
     cctx->bctx->http_delta.resp_4xx++;
 }
+
 void stat_5xx_inc (client_context* cctx)
 {
   cctx->st.resp_5xx++;
@@ -205,6 +207,7 @@ void stat_appl_delay_add (client_context* cctx, unsigned long resp_timestamp)
         }
     }
 }
+
 void stat_appl_delay_2xx_add (client_context* cctx, unsigned long resp_timestamp)
 {
     if (resp_timestamp > cctx->req_sent_timestamp)
@@ -222,6 +225,25 @@ void stat_appl_delay_2xx_add (client_context* cctx, unsigned long resp_timestamp
              resp_timestamp - cctx->req_sent_timestamp) / ++cctx->bctx->http_delta.appl_delay_2xx_points;
         }
     }
+
+    stat_appl_url_times(cctx, resp_timestamp);
+}
+
+void stat_appl_url_times (client_context* cctx, unsigned long resp_timestamp)
+{
+    if (resp_timestamp > cctx->req_sent_timestamp)
+    {
+      batch_context* bctx = cctx->bctx;
+      op_stat_point* point = &bctx->op_total;
+      //op_stat_point*const osp_total = cctx->bctx->op_total;
+
+      point->url_last[cctx->url_curr_index] = (resp_timestamp - cctx->req_sent_timestamp);
+      	
+      fprintf (stderr, 
+               "resp_timestamp: %d ; url_curr_index: %d", 
+               resp_timestamp, point->url_last[cctx->url_curr_index]);
+      
+    }
 }
 
 void dump_client (FILE* file, client_context* cctx)
@@ -238,7 +260,5 @@ void dump_client (FILE* file, client_context* cctx)
            cctx->st.other_errs, cctx->st.url_timeout_errs);
   fflush (file);
 }
-
-
 
 

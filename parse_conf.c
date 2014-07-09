@@ -2669,6 +2669,7 @@ int alloc_client_fetch_decision_array (batch_context* bctx)
 *******************************************************************************/
 int init_operational_statistics(batch_context* bctx)
 {
+  fprintf (stderr, "%s -  init of op_delta start.\n",__func__);
   if (op_stat_point_init(&bctx->op_delta,
                          bctx->urls_num) == -1)
     {

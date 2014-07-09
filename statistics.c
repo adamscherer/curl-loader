@@ -29,6 +29,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "json.h"
+
 #include "batch.h"
 #include "client.h"
 #include "loader.h"
@@ -167,6 +169,7 @@ void op_stat_point_add (op_stat_point* left, op_stat_point* right)
       left->url_ok[i] += right->url_ok[i];
       left->url_failed[i] += right->url_failed[i];
       left->url_timeouted[i] += right->url_timeouted[i];
+      left->url_min[i] += right->url_min[i];
     }
   
   left->call_init_count += right->call_init_count;
@@ -181,6 +184,7 @@ void op_stat_point_add (op_stat_point* left, op_stat_point* right)
 ****************************************************************************************/
 void op_stat_point_reset (op_stat_point* point)
 {
+  fprintf(stderr, "op_stat_point_reset called. .\n");
   if (!point)
     return;
 
@@ -189,7 +193,7 @@ void op_stat_point_reset (op_stat_point* point)
       size_t i;
       for ( i = 0; i < point->url_num; i++)
         {
-          point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = 0;
+          point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = point->url_min[i] = point->url_max[i] = point->url_avg[i] = point->url_last[i] = 0;
         }
     }
     /* Don't null point->url_num ! */
@@ -206,6 +210,7 @@ void op_stat_point_reset (op_stat_point* point)
 ****************************************************************************************/
 void op_stat_point_release (op_stat_point* point)
 {
+  fprintf(stderr, "op_stat_point_release called. .\n");
   if (point->url_ok)
     {
       free (point->url_ok);
@@ -222,6 +227,30 @@ void op_stat_point_release (op_stat_point* point)
     {
       free (point->url_timeouted);
       point->url_timeouted = NULL;
+    }
+
+    if (point->url_min)
+    {
+      free (point->url_min);
+      point->url_min = NULL;
+    }
+
+    if (point->url_max)
+    {
+      free (point->url_max);
+      point->url_max = NULL;
+    }
+
+    if (point->url_avg)
+    {
+      free (point->url_avg);
+      point->url_avg = NULL;
+    }
+
+    if (point->url_last)
+    {
+      free (point->url_last);
+      point->url_last = NULL;
     }
 
   memset (point, 0, sizeof (op_stat_point));
@@ -243,11 +272,16 @@ int op_stat_point_init (op_stat_point* point, size_t url_num)
   if (! point)
     return -1;
 
+   fprintf(stderr, "op_stat_point_init called. .\n");
    if (url_num)
     { 
       if (!(point->url_ok = calloc (url_num, sizeof (unsigned long))) ||
           !(point->url_failed = calloc (url_num, sizeof (unsigned long))) ||
-          !(point->url_timeouted = calloc (url_num, sizeof (unsigned long)))
+          !(point->url_timeouted = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_min = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_max = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_avg = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_last = calloc (url_num, sizeof (unsigned long)))
           )
         {
           goto allocation_failed;
@@ -257,6 +291,9 @@ int op_stat_point_init (op_stat_point* point, size_t url_num)
     }
 
   point->call_init_count = 0;
+
+  fprintf(stderr, "%s - calloc () set  %d.\n",
+              __func__, point->url_last[0]);
 
   return 0;
 
@@ -287,7 +324,7 @@ void op_stat_update (op_stat_point* op_stat,
 {
   (void) current_url_index;
   
-
+  fprintf(stderr, "op_stat_update called. %s\n", op_stat->url_last[0]);
   if (!op_stat)
     return;
 
@@ -590,6 +627,9 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
                                                           unsigned long now_time,
                                                           int clients_total_num)
 {
+
+  store_json_data(bctx, now_time, clients_total_num);
+  
   int i;
   const unsigned long delta_t = now_time - bctx->last_measure; 
   const unsigned long delta_time = delta_t ? delta_t : 1;
@@ -869,9 +909,56 @@ static void print_operational_statistics (FILE *opstats_file,
                    osp_curr->url_ok[i], osp_total->url_ok[i],
                    osp_curr->url_failed[i], osp_total->url_failed[i],
                    osp_curr->url_timeouted[i], osp_total->url_timeouted[i]);
-  
-          fprintf(stdout, "{'url': '%s', 'success': %ld, 'fail': %ld, 'timeout': %ld}",
-                     url_arr[i].url_str, osp_total->url_ok[i], osp_total->url_failed[i], osp_total->url_timeouted[i]);
         }
     }
+}
+
+/***********************************************************************************
+ * * Function name - store_json_data
+ * *
+ * * Description - writes number of login, UAS - for each URL and logoff operations
+ * *               success and failure numbers
+ * *
+ * * Input -       *opstats_file - FILE pointer
+ * *               *osp_curr - pointer to the current operational statistics point
+ * *               *osp_total - pointer to the current operational statistics point
+ * *
+ * * Return Code/Output - None
+ * *************************************************************************************/
+void store_json_data (batch_context* bctx,
+                      unsigned long now,
+                      int clients_total_num)
+{
+
+  int seconds_run = (int)(now - bctx->start_time)/ 1000;
+  url_context* url_arr = bctx->url_ctx_array;
+  op_stat_point*const osp_total = &bctx->op_total;
+
+  json_object *my_object, *my_array;
+  my_object = json_object_new_object();
+  json_object_object_add(my_object, "totalClients", json_object_new_int(clients_total_num));
+  json_object_object_add(my_object, "secondsRun", json_object_new_int(seconds_run));
+
+  my_array = json_object_new_array();
+  unsigned long i;
+  for (i = 0; i < bctx->urls_num; i++)
+  {
+    json_object *my_url_object;
+    my_url_object = json_object_new_object();
+    json_object_object_add(my_url_object, "url", json_object_new_string(url_arr[i].url_str));
+    json_object_object_add(my_url_object, "success", json_object_new_int(osp_total->url_ok[i]));
+    json_object_object_add(my_url_object, "fail", json_object_new_int(osp_total->url_failed[i]));
+    json_object_object_add(my_url_object, "timeout", json_object_new_int(osp_total->url_timeouted[i]));
+    json_object_object_add(my_url_object, "min", json_object_new_int(osp_total->url_timeouted[i]));
+    json_object_object_add(my_url_object, "max", json_object_new_int(osp_total->url_timeouted[i]));
+    json_object_object_add(my_url_object, "avg", json_object_new_int(osp_total->url_timeouted[i]));
+    //json_object_object_add(my_url_object, "last", json_object_new_int(osp_total->url_last[i]));
+    json_object_array_add(my_array, my_url_object);
+
+    fprintf(stderr, "Last value: %s", osp_total->url_last[i]);
+  }
+
+  json_object_object_add(my_object, "data", my_array);
+
+  fprintf(stdout, json_object_to_json_string(my_object));
 }

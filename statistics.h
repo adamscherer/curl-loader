@@ -108,9 +108,9 @@ typedef struct op_stat_point
 
   unsigned long* url_max;
 
-  unsigned long* url_avg;
-
   unsigned long* url_last;
+
+  unsigned long* url_total_seconds;
 
   /* Used for CAPS calculation */
   unsigned long call_init_count;

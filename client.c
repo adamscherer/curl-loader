@@ -233,11 +233,23 @@ void stat_appl_url_times (client_context* cctx, unsigned long resp_timestamp)
 {
     if (resp_timestamp > cctx->req_sent_timestamp)
     {
-      batch_context* bctx = cctx->bctx;
-      op_stat_point* op_total = &bctx->op_total;
+       size_t url_curr_index = cctx->url_curr_index;
+       unsigned long req_duration = (resp_timestamp - cctx->req_sent_timestamp);
+       batch_context* bctx = cctx->bctx;
+       op_stat_point* op_total = &bctx->op_total;
 
-      //point->url_last[cctx->url_curr_index] = (resp_timestamp - cctx->req_sent_timestamp);
-      op_total->url_last[cctx->url_curr_index]= (resp_timestamp - cctx->req_sent_timestamp);
+       unsigned long current_min = op_total->url_min[url_curr_index];
+       if (req_duration < current_min || current_min == 0) {
+         op_total->url_min[url_curr_index] = req_duration;
+       }
+     
+       unsigned long current_max = op_total->url_max[url_curr_index];
+       if (req_duration > current_max || current_min == 0) {
+         op_total->url_max[url_curr_index] = req_duration;
+       }
+
+       op_total->url_total_seconds[url_curr_index] += req_duration;
+       op_total->url_last[url_curr_index] = req_duration;
     }
 }
 

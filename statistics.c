@@ -200,7 +200,7 @@ void op_stat_point_reset (op_stat_point* point)
     size_t i;
     for ( i = 0; i < point->url_num; i++)
     {
-      point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = point->url_min[i] = point->url_max[i] = point->url_avg[i] = point->url_last[i] = 0;
+      point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = point->url_min[i] = point->url_max[i] = point->url_last[i] = point->url_total_seconds[i] = 0;
     }
   }
   /* Don't null point->url_num ! */
@@ -247,16 +247,16 @@ void op_stat_point_release (op_stat_point* point)
     point->url_max = NULL;
   }
 
-  if (point->url_avg)
-  {
-    free (point->url_avg);
-    point->url_avg = NULL;
-  }
-
   if (point->url_last)
   {
     free (point->url_last);
     point->url_last = NULL;
+  }
+
+  if (point->url_total_seconds)
+  {
+    free (point->url_total_seconds);
+    point->url_total_seconds = NULL;
   }
 
   memset (point, 0, sizeof (op_stat_point));
@@ -286,8 +286,8 @@ int op_stat_point_init (op_stat_point* point, size_t url_num)
         !(point->url_timeouted = calloc (url_num, sizeof (unsigned long))) ||
         !(point->url_min = calloc (url_num, sizeof (unsigned long))) ||
         !(point->url_max = calloc (url_num, sizeof (unsigned long))) ||
-        !(point->url_avg = calloc (url_num, sizeof (unsigned long))) ||
-        !(point->url_last = calloc (url_num, sizeof (unsigned long)))
+        !(point->url_last = calloc (url_num, sizeof (unsigned long))) ||
+        !(point->url_total_seconds = calloc (url_num, sizeof (unsigned long)))
        )
     {
        goto allocation_failed;
@@ -957,8 +957,16 @@ static void store_json_data (batch_context* bctx,
     json_object_object_add(my_url_object, "timeout", json_object_new_int(osp_total->url_timeouted[i]));
     json_object_object_add(my_url_object, "min", json_object_new_int(osp_total->url_min[i]));
     json_object_object_add(my_url_object, "max", json_object_new_int(osp_total->url_max[i]));
-    json_object_object_add(my_url_object, "avg", json_object_new_int(osp_total->url_avg[i]));
     json_object_object_add(my_url_object, "last", json_object_new_int(osp_total->url_last[i]));
+
+    unsigned long total_success = osp_total->url_ok[i];
+    unsigned long total_seconds = osp_total->url_total_seconds[i];
+    unsigned long total_avg = 0;
+    if (total_success > 0) {
+      total_avg = total_seconds / total_success;
+    }
+    json_object_object_add(my_url_object, "avg", json_object_new_int(total_avg));
+
     json_object_array_add(my_array, my_url_object);
   }
 

@@ -72,6 +72,11 @@ static void dump_stat_to_screen (char* protocol,
 
 static void dump_clients (client_context* cctx_array);
 
+static void store_json_data (batch_context* bctx,
+                      unsigned long now,
+                      int clients_total_num,
+                      op_stat_point*const osp_total);
+
 /****************************************************************************************
 * Function name - stat_point_add
 *
@@ -169,7 +174,10 @@ void op_stat_point_add (op_stat_point* left, op_stat_point* right)
       left->url_ok[i] += right->url_ok[i];
       left->url_failed[i] += right->url_failed[i];
       left->url_timeouted[i] += right->url_timeouted[i];
-      left->url_min[i] += right->url_min[i];
+      //left->url_min[i] = 10;
+      //left->url_max[i] = 10;
+      //left->url_avg[i] = 10;
+      //left->url_last[i] = 20;
     }
   
   left->call_init_count += right->call_init_count;
@@ -184,21 +192,20 @@ void op_stat_point_add (op_stat_point* left, op_stat_point* right)
 ****************************************************************************************/
 void op_stat_point_reset (op_stat_point* point)
 {
-  fprintf(stderr, "op_stat_point_reset called. .\n");
   if (!point)
     return;
 
   if (point->url_num)
+  {
+    size_t i;
+    for ( i = 0; i < point->url_num; i++)
     {
-      size_t i;
-      for ( i = 0; i < point->url_num; i++)
-        {
-          point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = point->url_min[i] = point->url_max[i] = point->url_avg[i] = point->url_last[i] = 0;
-        }
+      point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = point->url_min[i] = point->url_max[i] = point->url_avg[i] = point->url_last[i] = 0;
     }
-    /* Don't null point->url_num ! */
+  }
+  /* Don't null point->url_num ! */
 
-   point->call_init_count = 0;
+  point->call_init_count = 0;
 }
 
 /****************************************************************************************
@@ -210,48 +217,47 @@ void op_stat_point_reset (op_stat_point* point)
 ****************************************************************************************/
 void op_stat_point_release (op_stat_point* point)
 {
-  fprintf(stderr, "op_stat_point_release called. .\n");
   if (point->url_ok)
-    {
-      free (point->url_ok);
-      point->url_ok = NULL;
-    }
+  {
+    free (point->url_ok);
+    point->url_ok = NULL;
+  }
 
   if (point->url_failed)
-    {
-      free (point->url_failed);
-      point->url_failed = NULL;
-    }
+  {
+    free (point->url_failed);
+    point->url_failed = NULL;
+  }
 
-    if (point->url_timeouted)
-    {
-      free (point->url_timeouted);
-      point->url_timeouted = NULL;
-    }
+  if (point->url_timeouted)
+  {
+    free (point->url_timeouted);
+    point->url_timeouted = NULL;
+  }
 
-    if (point->url_min)
-    {
-      free (point->url_min);
-      point->url_min = NULL;
-    }
+  if (point->url_min)
+  {
+    free (point->url_min);
+    point->url_min = NULL;
+  }
 
-    if (point->url_max)
-    {
-      free (point->url_max);
-      point->url_max = NULL;
-    }
+  if (point->url_max)
+  {
+    free (point->url_max);
+    point->url_max = NULL;
+  }
 
-    if (point->url_avg)
-    {
-      free (point->url_avg);
-      point->url_avg = NULL;
-    }
+  if (point->url_avg)
+  {
+    free (point->url_avg);
+    point->url_avg = NULL;
+  }
 
-    if (point->url_last)
-    {
-      free (point->url_last);
-      point->url_last = NULL;
-    }
+  if (point->url_last)
+  {
+    free (point->url_last);
+    point->url_last = NULL;
+  }
 
   memset (point, 0, sizeof (op_stat_point));
 }
@@ -269,36 +275,33 @@ void op_stat_point_release (op_stat_point* point)
 ****************************************************************************************/
 int op_stat_point_init (op_stat_point* point, size_t url_num)
 {
+ 
   if (! point)
     return -1;
 
-   fprintf(stderr, "op_stat_point_init called. .\n");
-   if (url_num)
-    { 
-      if (!(point->url_ok = calloc (url_num, sizeof (unsigned long))) ||
-          !(point->url_failed = calloc (url_num, sizeof (unsigned long))) ||
-          !(point->url_timeouted = calloc (url_num, sizeof (unsigned long))) ||
-          !(point->url_min = calloc (url_num, sizeof (unsigned long))) ||
-          !(point->url_max = calloc (url_num, sizeof (unsigned long))) ||
-          !(point->url_avg = calloc (url_num, sizeof (unsigned long))) ||
-          !(point->url_last = calloc (url_num, sizeof (unsigned long)))
-          )
-        {
-          goto allocation_failed;
-        }
-      else
-        point->url_num = url_num;
+  if (url_num)
+  { 
+    if (!(point->url_ok = calloc (url_num, sizeof (unsigned long))) ||
+        !(point->url_failed = calloc (url_num, sizeof (unsigned long))) ||
+        !(point->url_timeouted = calloc (url_num, sizeof (unsigned long))) ||
+        !(point->url_min = calloc (url_num, sizeof (unsigned long))) ||
+        !(point->url_max = calloc (url_num, sizeof (unsigned long))) ||
+        !(point->url_avg = calloc (url_num, sizeof (unsigned long))) ||
+        !(point->url_last = calloc (url_num, sizeof (unsigned long)))
+       )
+    {
+       goto allocation_failed;
     }
+    else
+      point->url_num = url_num;
+  }
 
   point->call_init_count = 0;
 
-  fprintf(stderr, "%s - calloc () set  %d.\n",
-              __func__, point->url_last[0]);
-
   return 0;
 
- allocation_failed:
-  fprintf(stderr, "%s - calloc () failed with errno %d.\n", 
+  allocation_failed:
+    fprintf(stderr, "%s - calloc () failed with errno %d.\n", 
               __func__, errno);
   return -1;
 }
@@ -324,15 +327,14 @@ void op_stat_update (op_stat_point* op_stat,
 {
   (void) current_url_index;
   
-  fprintf(stderr, "op_stat_update called. %s\n", op_stat->url_last[0]);
   if (!op_stat)
     return;
 
   if (prev_state == CSTATE_URLS)
-    {
-      (current_state == CSTATE_ERROR) ? op_stat-> url_failed[prev_url_index]++ :
-        op_stat->url_ok[prev_url_index]++;
-    }
+  {
+    (current_state == CSTATE_ERROR) ? op_stat-> url_failed[prev_url_index]++ :
+      op_stat->url_ok[prev_url_index]++;
+  }
   
   return;
 }
@@ -340,7 +342,7 @@ void op_stat_update (op_stat_point* op_stat,
 void op_stat_timeouted (op_stat_point* op_stat, size_t url_index)
 {
     if (!op_stat)
-    return;
+      return;
 
     op_stat-> url_timeouted[url_index]++;
 }
@@ -362,11 +364,12 @@ unsigned long get_tick_count ()
   struct timeval  tval;
 
   if (gettimeofday (&tval, NULL) == -1)
-    {
-      fprintf(stderr, "%s - gettimeofday () failed with errno %d.\n", 
-              __func__, errno);
-      exit (1);
-    }
+  {
+    fprintf(stderr, "%s - gettimeofday () failed with errno %d.\n", 
+            __func__, errno);
+    exit (1);
+  }
+
   return tval.tv_sec * 1000 + (tval.tv_usec / 1000);
 }
 
@@ -389,17 +392,17 @@ void dump_final_statistics (client_context* cctx)
   unsigned long now = get_tick_count();
 
   for (i = 0; i <= threads_subbatches_num; i++)
+  {
+    if (i)
     {
-      if (i)
-        {
-          stat_point_add (&bctx->http_delta, &(bctx + i)->http_delta);
-          stat_point_add (&bctx->https_delta, &(bctx + i)->https_delta);
+      stat_point_add (&bctx->http_delta, &(bctx + i)->http_delta);
+      stat_point_add (&bctx->https_delta, &(bctx + i)->https_delta);
           
-          /* Other threads statistics - reset just after collecting */
-          stat_point_reset (&(bctx + i)->http_delta); 
-          stat_point_reset (&(bctx + i)->https_delta);
-        }
+      /* Other threads statistics - reset just after collecting */
+      stat_point_reset (&(bctx + i)->http_delta); 
+      stat_point_reset (&(bctx + i)->https_delta);
     }
+  }
   
   print_snapshot_interval_statistics (now - bctx->last_measure,
 		&bctx->http_delta,  
@@ -429,15 +432,16 @@ void dump_final_statistics (client_context* cctx)
 
 
   for (i = 0; i <= threads_subbatches_num; i++)
+  {
+    if (i)
     {
-      if (i)
-        {
-          op_stat_point_add (&bctx->op_delta, &(bctx + i)->op_delta );
+      op_stat_point_add (&bctx->op_delta, &(bctx + i)->op_delta );
           
-          /* Other threads operational statistics - reset just after collecting */
-          op_stat_point_reset (&(bctx + i)->op_delta);
-        }
+      /* Other threads operational statistics - reset just after collecting */
+      op_stat_point_reset (&(bctx + i)->op_delta);
     }
+  }
+
   op_stat_point_add (&bctx->op_total, &bctx->op_delta);
   
   print_operational_statistics (bctx->opstats_file,
@@ -445,30 +449,30 @@ void dump_final_statistics (client_context* cctx)
                                 &bctx->op_total, 
                                 bctx->url_ctx_array);
 
+  store_json_data(bctx, now, 0, &bctx->op_total);
 
   if (bctx->statistics_file)
-    {
+  {
+    print_statistics_footer_to_file (bctx->statistics_file);
+    print_statistics_header (bctx->statistics_file);
 
-      print_statistics_footer_to_file (bctx->statistics_file);
-      print_statistics_header (bctx->statistics_file);
-
-      const unsigned long loading_t = now - bctx->start_time;
-      const unsigned long loading_time = loading_t ? loading_t : 1;
+    const unsigned long loading_t = now - bctx->start_time;
+    const unsigned long loading_time = loading_t ? loading_t : 1;
  
-      print_statistics_data_to_file (bctx->statistics_file,
+    print_statistics_data_to_file (bctx->statistics_file,
 				     loading_time/1000,
 				     UNSECURE_APPL_STR,
 				     pending_active_and_waiting_clients_num_stat (bctx),
 				     &bctx->http_total,
 				     loading_time);
 			
-      print_statistics_data_to_file (bctx->statistics_file, 
-				     loading_time/1000,
+    print_statistics_data_to_file (bctx->statistics_file, 
+                                   loading_time/1000,
 				     SECURE_APPL_STR,
 				     pending_active_and_waiting_clients_num_stat (bctx),
 				     &bctx->https_total,
 				     loading_time);
-    }
+  }
 
   dump_clients (cctx);
   (void)fprintf (stderr, "\nExited. For details look in the files:\n"
@@ -512,9 +516,9 @@ char *ascii_time (char *tbuf)
 void dump_snapshot_interval (batch_context* bctx, unsigned long now)
 {
   if (!stop_loading)
-    {
-      fprintf(stderr, "\033[2J");
-    }
+  {
+    fprintf(stderr, "\033[2J");
+  }
 
   int i;
   int total_current_clients = 0;
@@ -551,19 +555,19 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
   int total_client_num_max = 0;
   
   for (i = 0; i <= threads_subbatches_num; i++)
-    {
-      total_clients_rampup_inc += (bctx + i)->clients_rampup_inc;
-      total_client_num_max += (bctx + i)->client_num_max;
-    }
+  {
+    total_clients_rampup_inc += (bctx + i)->clients_rampup_inc;
+    total_client_num_max += (bctx + i)->client_num_max;
+  }
 
   if (bctx->do_client_num_gradual_increase && 
       (bctx->stop_client_num_gradual_increase == 0))
-    {
-      fprintf(stderr," Automatic: adding %ld clients/sec. Stop inc and manual [M].\n",
+  {
+    fprintf(stderr," Automatic: adding %ld clients/sec. Stop inc and manual [M].\n",
               total_clients_rampup_inc);
-    }
+  }
   else
-    {
+  {
       const int current_clients =
         pending_active_and_waiting_clients_num_stat (bctx);
 
@@ -580,7 +584,7 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
         {
           fprintf(stderr,"\n");
         }
-    }
+  }
 
   fprintf(stderr,"============================================================"
           "=====================\n");
@@ -603,9 +607,9 @@ void print_snapshot_interval_statistics (unsigned long period,
 {
   period /= 1000;
   if (period == 0)
-    {
-      period = 1;
-    }
+  {
+    period = 1;
+  }
 
   dump_stat_to_screen (UNSECURE_APPL_STR, http, period);
   dump_stat_to_screen (SECURE_APPL_STR, https, period);
@@ -628,18 +632,16 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
                                                           int clients_total_num)
 {
 
-  store_json_data(bctx, now_time, clients_total_num);
-  
   int i;
   const unsigned long delta_t = now_time - bctx->last_measure; 
   const unsigned long delta_time = delta_t ? delta_t : 1;
 
   if (stop_loading)
-    {
-      dump_final_statistics (bctx->cctx_array);
-      screen_release ();
-      exit (1); 
-    }
+  {
+    dump_final_statistics (bctx->cctx_array);
+    screen_release ();
+    exit (1); 
+  }
 
   fprintf(stderr,"============  loading batch is: %-10.10s ===================="
           "==================\n",
@@ -648,17 +650,19 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
   /*Collect the operational statistics*/
 
   for (i = 0; i <= threads_subbatches_num; i++)
+  {
+    if (i)
     {
-      if (i)
-        {
-          op_stat_point_add (&bctx->op_delta, &(bctx + i)->op_delta );
+      op_stat_point_add (&bctx->op_delta, &(bctx + i)->op_delta );
 
-          /* Other threads operational statistics - reset just after collecting */
-          op_stat_point_reset (&(bctx + i)->op_delta);
-        }
+      /* Other threads operational statistics - reset just after collecting */
+      op_stat_point_reset (&(bctx + i)->op_delta);
     }
+  }
 
   op_stat_point_add (&bctx->op_total, &bctx->op_delta );
+
+  store_json_data(bctx, now_time, clients_total_num, &bctx->op_total);
 
   print_operational_statistics (bctx->opstats_file,
                                 &bctx->op_delta,
@@ -676,17 +680,17 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
 
 
   for (i = 0; i <= threads_subbatches_num; i++)
+  {
+    if (i)
     {
-      if (i)
-        {
-          stat_point_add (&bctx->http_delta, &(bctx + i)->http_delta);
-          stat_point_add (&bctx->https_delta, &(bctx + i)->https_delta);
+      stat_point_add (&bctx->http_delta, &(bctx + i)->http_delta);
+      stat_point_add (&bctx->https_delta, &(bctx + i)->https_delta);
 
-          /* Other threads statistics - reset just after collecting */
-          stat_point_reset (&(bctx + i)->http_delta); 
-          stat_point_reset (&(bctx + i)->https_delta);
-        }
+      /* Other threads statistics - reset just after collecting */
+      stat_point_reset (&(bctx + i)->http_delta); 
+      stat_point_reset (&(bctx + i)->https_delta);
     }
+  }
 
   stat_point_add (&bctx->http_total, &bctx->http_delta);
   stat_point_add (&bctx->https_total, &bctx->https_delta);
@@ -696,23 +700,23 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
                                      &bctx->https_delta);
 
   if (bctx->statistics_file)
-    {
-      const unsigned long timestamp_sec =  (now_time - bctx->start_time) / 1000;
+  {
+    const unsigned long timestamp_sec =  (now_time - bctx->start_time) / 1000;
 
-      print_statistics_data_to_file (bctx->statistics_file,
-                                     timestamp_sec,
-                                     UNSECURE_APPL_STR,
-                                     clients_total_num,
-                                     &bctx->http_delta,
-                                     delta_time);
+    print_statistics_data_to_file (bctx->statistics_file,
+                                   timestamp_sec,
+                                   UNSECURE_APPL_STR,
+                                   clients_total_num,
+                                   &bctx->http_delta,
+                                   delta_time);
     
-      print_statistics_data_to_file (bctx->statistics_file, 
-                                     timestamp_sec,
-                                     SECURE_APPL_STR, 
+    print_statistics_data_to_file (bctx->statistics_file, 
+                                   timestamp_sec,
+                                   SECURE_APPL_STR, 
                                      clients_total_num,
                                      &bctx->https_delta,
                                      delta_time);
-    }
+  }
 
   stat_point_reset (&bctx->http_delta); 
   stat_point_reset (&bctx->https_delta);
@@ -736,12 +740,12 @@ static void dump_statistics (unsigned long period,
                              stat_point *https)
 {
   if (period == 0)
-    {
-      fprintf(stderr,
-              "%s - less than 1 second duration test without statistics.\n",
-              __func__);
-      return;
-    }
+  {
+    fprintf(stderr,
+            "%s - less than 1 second duration test without statistics.\n",
+            __func__);
+    return;
+  }
   
   dump_stat_to_screen (UNSECURE_APPL_STR, http, period);
   dump_stat_to_screen (SECURE_APPL_STR, https, period);
@@ -925,14 +929,15 @@ static void print_operational_statistics (FILE *opstats_file,
  * *
  * * Return Code/Output - None
  * *************************************************************************************/
-void store_json_data (batch_context* bctx,
+static void store_json_data (batch_context* bctx,
                       unsigned long now,
-                      int clients_total_num)
+                      int clients_total_num,
+                      op_stat_point*const osp_total)
 {
-
+  fprintf(stderr, "Called store json");
   int seconds_run = (int)(now - bctx->start_time)/ 1000;
   url_context* url_arr = bctx->url_ctx_array;
-  op_stat_point*const osp_total = &bctx->op_total;
+  //op_stat_point* osp_total = bctx->op_total;
 
   json_object *my_object, *my_array;
   my_object = json_object_new_object();
@@ -946,19 +951,19 @@ void store_json_data (batch_context* bctx,
     json_object *my_url_object;
     my_url_object = json_object_new_object();
     json_object_object_add(my_url_object, "url", json_object_new_string(url_arr[i].url_str));
+    json_object_object_add(my_url_object, "urlShortName", json_object_new_string(url_arr[i].url_short_name));
     json_object_object_add(my_url_object, "success", json_object_new_int(osp_total->url_ok[i]));
     json_object_object_add(my_url_object, "fail", json_object_new_int(osp_total->url_failed[i]));
     json_object_object_add(my_url_object, "timeout", json_object_new_int(osp_total->url_timeouted[i]));
-    json_object_object_add(my_url_object, "min", json_object_new_int(osp_total->url_timeouted[i]));
-    json_object_object_add(my_url_object, "max", json_object_new_int(osp_total->url_timeouted[i]));
-    json_object_object_add(my_url_object, "avg", json_object_new_int(osp_total->url_timeouted[i]));
-    //json_object_object_add(my_url_object, "last", json_object_new_int(osp_total->url_last[i]));
+    json_object_object_add(my_url_object, "min", json_object_new_int(osp_total->url_min[i]));
+    json_object_object_add(my_url_object, "max", json_object_new_int(osp_total->url_max[i]));
+    json_object_object_add(my_url_object, "avg", json_object_new_int(osp_total->url_avg[i]));
+    json_object_object_add(my_url_object, "last", json_object_new_int(osp_total->url_last[i]));
     json_object_array_add(my_array, my_url_object);
-
-    fprintf(stderr, "Last value: %s", osp_total->url_last[i]);
   }
 
   json_object_object_add(my_object, "data", my_array);
 
   fprintf(stdout, json_object_to_json_string(my_object));
+  fflush (stdout);
 }

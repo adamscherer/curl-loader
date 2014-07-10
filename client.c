@@ -234,15 +234,10 @@ void stat_appl_url_times (client_context* cctx, unsigned long resp_timestamp)
     if (resp_timestamp > cctx->req_sent_timestamp)
     {
       batch_context* bctx = cctx->bctx;
-      op_stat_point* point = &bctx->op_total;
-      //op_stat_point*const osp_total = cctx->bctx->op_total;
+      op_stat_point* op_total = &bctx->op_total;
 
-      point->url_last[cctx->url_curr_index] = (resp_timestamp - cctx->req_sent_timestamp);
-      	
-      fprintf (stderr, 
-               "resp_timestamp: %d ; url_curr_index: %d", 
-               resp_timestamp, point->url_last[cctx->url_curr_index]);
-      
+      //point->url_last[cctx->url_curr_index] = (resp_timestamp - cctx->req_sent_timestamp);
+      op_total->url_last[cctx->url_curr_index]= (resp_timestamp - cctx->req_sent_timestamp);
     }
 }
 

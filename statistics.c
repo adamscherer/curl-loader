@@ -75,7 +75,9 @@ static void dump_clients (client_context* cctx_array);
 static void store_json_data (batch_context* bctx,
                       unsigned long now,
                       int clients_total_num,
-                      op_stat_point*const osp_total);
+                      op_stat_point*const osp_total,
+                      stat_point *http,
+                      stat_point *https);
 
 /****************************************************************************************
 * Function name - stat_point_add
@@ -449,7 +451,7 @@ void dump_final_statistics (client_context* cctx)
                                 &bctx->op_total, 
                                 bctx->url_ctx_array);
 
-  store_json_data(bctx, now, 0, &bctx->op_total);
+  store_json_data(bctx, now, 0, &bctx->op_total, &bctx->http_total, &bctx->https_total);
 
   if (bctx->statistics_file)
   {
@@ -662,8 +664,6 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
 
   op_stat_point_add (&bctx->op_total, &bctx->op_delta );
 
-  store_json_data(bctx, now_time, clients_total_num, &bctx->op_total);
-
   print_operational_statistics (bctx->opstats_file,
                                 &bctx->op_delta,
                                 &bctx->op_total, 
@@ -698,6 +698,8 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
   print_snapshot_interval_statistics(delta_time, 
                                      &bctx->http_delta,  
                                      &bctx->https_delta);
+
+  store_json_data(bctx, now_time, clients_total_num, &bctx->op_total, &bctx->http_total, &bctx->https_total);
 
   if (bctx->statistics_file)
   {
@@ -932,17 +934,27 @@ static void print_operational_statistics (FILE *opstats_file,
 static void store_json_data (batch_context* bctx,
                       unsigned long now,
                       int clients_total_num,
-                      op_stat_point*const osp_total)
+                      op_stat_point*const osp_total,
+                      stat_point *http,
+                      stat_point *https)
 {
   fprintf(stderr, "Called store json");
   int seconds_run = (int)(now - bctx->start_time)/ 1000;
   url_context* url_arr = bctx->url_ctx_array;
-  //op_stat_point* osp_total = bctx->op_total;
 
   json_object *my_object, *my_array;
   my_object = json_object_new_object();
   json_object_object_add(my_object, "totalClients", json_object_new_int(clients_total_num));
   json_object_object_add(my_object, "secondsRun", json_object_new_int(seconds_run));
+  json_object_object_add(my_object, "totalRequests", json_object_new_int(http->requests + https->requests));
+  json_object_object_add(my_object, "1xxRequests", json_object_new_int(http->resp_1xx + https->resp_1xx));
+  json_object_object_add(my_object, "2xxRequests", json_object_new_int(http->resp_1xx + https->resp_2xx));
+  json_object_object_add(my_object, "3xxRequests", json_object_new_int(http->resp_1xx + https->resp_3xx));
+  json_object_object_add(my_object, "4xxRequests", json_object_new_int(http->resp_1xx + https->resp_4xx));
+  json_object_object_add(my_object, "5xxRequests", json_object_new_int(http->resp_1xx + https->resp_5xx));
+  json_object_object_add(my_object, "totalDataIn", json_object_new_int(http->data_in + https->data_in));
+  json_object_object_add(my_object, "totalDataOut", json_object_new_int(http->data_out + https->data_out));
+  json_object_object_add(my_object, "avgTime", json_object_new_int((http->appl_delay + https->appl_delay) / 2));
 
   my_array = json_object_new_array();
   unsigned long i;

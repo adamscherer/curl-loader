@@ -942,19 +942,20 @@ static void store_json_data (batch_context* bctx,
   int seconds_run = (int)(now - bctx->start_time)/ 1000;
   url_context* url_arr = bctx->url_ctx_array;
 
-  json_object *my_object, *my_array;
+  json_object *my_object, *my_array, *stat_object;
   my_object = json_object_new_object();
-  json_object_object_add(my_object, "totalClients", json_object_new_int(clients_total_num));
-  json_object_object_add(my_object, "secondsRun", json_object_new_int(seconds_run));
-  json_object_object_add(my_object, "totalRequests", json_object_new_int(http->requests + https->requests));
-  json_object_object_add(my_object, "1xxRequests", json_object_new_int(http->resp_1xx + https->resp_1xx));
-  json_object_object_add(my_object, "2xxRequests", json_object_new_int(http->resp_1xx + https->resp_2xx));
-  json_object_object_add(my_object, "3xxRequests", json_object_new_int(http->resp_1xx + https->resp_3xx));
-  json_object_object_add(my_object, "4xxRequests", json_object_new_int(http->resp_1xx + https->resp_4xx));
-  json_object_object_add(my_object, "5xxRequests", json_object_new_int(http->resp_1xx + https->resp_5xx));
-  json_object_object_add(my_object, "totalDataIn", json_object_new_int(http->data_in + https->data_in));
-  json_object_object_add(my_object, "totalDataOut", json_object_new_int(http->data_out + https->data_out));
-  json_object_object_add(my_object, "avgTime", json_object_new_int((http->appl_delay + https->appl_delay) / 2));
+  stat_object = json_object_new_object();
+  json_object_object_add(stat_object, "totalClients", json_object_new_int(clients_total_num));
+  json_object_object_add(stat_object, "secondsRun", json_object_new_int(seconds_run));
+  json_object_object_add(stat_object, "totalRequests", json_object_new_int(http->requests + https->requests));
+  json_object_object_add(stat_object, "1xxRequests", json_object_new_int(http->resp_1xx + https->resp_1xx));
+  json_object_object_add(stat_object, "2xxRequests", json_object_new_int(http->resp_1xx + https->resp_2xx));
+  json_object_object_add(stat_object, "3xxRequests", json_object_new_int(http->resp_1xx + https->resp_3xx));
+  json_object_object_add(stat_object, "4xxRequests", json_object_new_int(http->resp_1xx + https->resp_4xx));
+  json_object_object_add(stat_object, "5xxRequests", json_object_new_int(http->resp_1xx + https->resp_5xx));
+  json_object_object_add(stat_object, "totalDataIn", json_object_new_int(http->data_in + https->data_in));
+  json_object_object_add(stat_object, "totalDataOut", json_object_new_int(http->data_out + https->data_out));
+  json_object_object_add(stat_object, "avgTime", json_object_new_int((http->appl_delay + https->appl_delay) / 2));
 
   my_array = json_object_new_array();
   unsigned long i;
@@ -982,7 +983,8 @@ static void store_json_data (batch_context* bctx,
     json_object_array_add(my_array, my_url_object);
   }
 
-  json_object_object_add(my_object, "data", my_array);
+  json_object_object_add(my_object, "stat", stat_object);
+  json_object_object_add(my_object, "urls", my_array);
 
   fprintf(stdout, json_object_to_json_string(my_object));
   fflush (stdout);

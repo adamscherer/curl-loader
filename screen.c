@@ -1,7 +1,7 @@
 /*
 *     screen.c
 *
-* 2007 Copyright (c) 
+* 2007 Copyright (c)
 * Robert Iakobashvili, <coroberti@gmail.com>
 * All rights reserved.
 *
@@ -48,22 +48,22 @@ static struct termios start_tty, run_tty;
 void screen_init ()
 {
     /* Initializes curses library */
-  //initscr();
-  /* Improves performances */
-  //noecho();
-  //fprintf(stderr, "\033[2J");
+    //initscr();
+    /* Improves performances */
+    //noecho();
+    //fprintf(stderr, "\033[2J");
 
-  /* disable echoing keyboard input */
-  tcgetattr(STDIN_FILENO, &start_tty);
-  run_tty = start_tty;
-  run_tty.c_lflag &= ~ECHO;
-  tcsetattr(STDIN_FILENO, TCSANOW, &run_tty);
+    /* disable echoing keyboard input */
+    tcgetattr(STDIN_FILENO, &start_tty);
+    run_tty = start_tty;
+    run_tty.c_lflag &= ~ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &run_tty);
 }
 
 void screen_release ()
 {
-  /* re-enable echoing */
-  tcsetattr(STDIN_FILENO, TCSANOW, &start_tty);
+    /* re-enable echoing */
+    tcsetattr(STDIN_FILENO, TCSANOW, &start_tty);
 }
 
 /*
@@ -113,14 +113,14 @@ getch(void)
 
 #endif
 
-  if (!tcsetattr(STDIN_FILENO, FLAG, &ntty)) 
-   {
+  if (!tcsetattr(STDIN_FILENO, FLAG, &ntty))
+  {
      /* get a single character from stdin */
      if (read (STDIN_FILENO, &ch, 1 ) == -1)
        {
          if (!stop_loading)
            {
-             fprintf(stderr, "%s - read() failed with errno %d.\n", 
+             fprintf(stderr, "%s - read() failed with errno %d.\n",
                      __func__, errno);
            }
          return -1;
@@ -131,69 +131,52 @@ getch(void)
   }
 
   return ch;
-} 
+}
 
 int screen_test_keyboard_input (batch_context* bctx)
 {
-  /*
-  int rval_input = -1;
-  if ((rval_input = test_fd_readable (STDIN_FILENO)) == -1)
-    {
-      fprintf(stderr, "%s - select () failed with errno %d.\n", 
-              __func__, errno);
-      return -1;
-    }
-  if (!rval_input)
-    return 0;
-  */
+    int the_key;
 
-  int the_key;
-
-  if ((the_key = getch ())== -1)
+    if ((the_key = getch ())== -1)
     {
-      //fprintf(stderr, "%s - getch () failed with errno %d.\n", 
-      //        __func__, errno);
-      return 0;
+        //fprintf(stderr, "%s - getch () failed with errno %d.\n",
+        //        __func__, errno);
+        return 0;
     }
-  
-  return on_keybord_input (the_key, bctx);
+
+    return on_keybord_input (the_key, bctx);
 }
 
 int on_keybord_input (int key, batch_context* bctx)
 {
-  char ch = key;
+    char ch = key;
 
-     switch (ch) 
-       {
-       case 'm':
-       case 'M':
-         bctx->stop_client_num_gradual_increase = 1;
-         //fprintf(stderr, "%s - stop_inc %d\n", 
-         //        __func__, bctx->stop_client_num_gradual_increase);
-         break;
+    switch (ch)
+    {
+        case 'm':
+        case 'M':
+            bctx->stop_client_num_gradual_increase = 1;
+            //fprintf(stderr, "%s - stop_inc %d\n",
+            //        __func__, bctx->stop_client_num_gradual_increase);
+            break;
 
-       case 'a':
-       case 'A':
-         bctx->stop_client_num_gradual_increase = 0;
-         break;
+        case 'a':
+        case 'A':
+            bctx->stop_client_num_gradual_increase = 0;
+            break;
 
-       case '+':
-         add_loading_clients_num (bctx, 1);
-         break;
-         
-         //case '-':
-         //break;
-         
-       case '*':
-         add_loading_clients_num (bctx, 10);
-         break;
-         
-         //case '/':
-         //break;
-       }
+        case '+':
+            add_loading_clients_num (bctx, 1);
+            break;
 
-     fprintf(stderr, "%s - got %c\n", __func__, key);
-     return 0;
+        case '*':
+            add_loading_clients_num (bctx, 10);
+            break;
+    }
+
+    fprintf(stderr, "%s - got %c\n", __func__, key);
+
+    return 0;
 }
 
 /****************************************************************************************
@@ -216,4 +199,3 @@ static int test_fd_readable (int fd)
   return select (fd + 1, &fdset, NULL, NULL, &timeout);
 }
 */
-

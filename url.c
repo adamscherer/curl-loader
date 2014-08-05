@@ -1,7 +1,7 @@
 /*
 *     url.c
 *
-* 2007 Copyright (c) 
+* 2007 Copyright (c)
 * Robert Iakobashvili, <coroberti@gmail.com>
 * All rights reserved.
 *
@@ -28,51 +28,51 @@
 double get_random ();
 
 int
-current_url_completion_timeout (unsigned long *timeout, 
-                                url_context* url, 
+current_url_completion_timeout (unsigned long *timeout,
+                                url_context* url,
                                 unsigned long now)
 {
-  (void) now;
+    (void) now;
 
-  if (!timeout || ! url)
+    if (!timeout || ! url)
     {
-      fprintf(stderr, "%s error: wrong input.\n", __func__);
-      return -1;
+        fprintf(stderr, "%s error: wrong input.\n", __func__);
+        return -1;
     }
 
-  if (! url->timer_url_completion_hrange)
+    if (! url->timer_url_completion_hrange)
     {
-      *timeout = url->timer_url_completion_lrange;
-      return 0;
+        *timeout = url->timer_url_completion_lrange;
+        return 0;
     }
 
-  *timeout = url->timer_url_completion_lrange + 
-          (unsigned long) (url->timer_url_completion_hrange * get_random());
+    *timeout = url->timer_url_completion_lrange +
+            (unsigned long) (url->timer_url_completion_hrange * get_random());
 
-  return 0;
+    return 0;
 }
 
 int
-current_url_sleeping_timeout (unsigned long *timeout, 
-                              url_context* url, 
+current_url_sleeping_timeout (unsigned long *timeout,
+                              url_context* url,
                               unsigned long now)
 {
-  (void) now;
+    (void) now;
 
-  if (!timeout || ! url)
+    if (!timeout || ! url)
     {
-      fprintf(stderr, "%s error: wrong input.\n", __func__);
-      return -1;
-    }
-  
-  if (! url->timer_after_url_sleep_hrange)
-    {
-      *timeout = url->timer_after_url_sleep_lrange;
-      return 0;
+        fprintf(stderr, "%s error: wrong input.\n", __func__);
+        return -1;
     }
 
-  *timeout = url->timer_after_url_sleep_lrange + 
-          (unsigned long) (url->timer_after_url_sleep_hrange * get_random());
+    if (! url->timer_after_url_sleep_hrange)
+    {
+        *timeout = url->timer_after_url_sleep_lrange;
+        return 0;
+    }
 
-  return 0;
+    *timeout = url->timer_after_url_sleep_lrange +
+            (unsigned long) (url->timer_after_url_sleep_hrange * get_random());
+
+    return 0;
 }

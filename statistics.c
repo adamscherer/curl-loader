@@ -1,9 +1,9 @@
 /*
 *     statistics.c
 *
-* 2006 Copyright (c) 
+* 2006 Copyright (c)
 * Robert Iakobashvili, <coroberti@gmail.com>
-* Michael Moser,  <moser.michael@gmail.com>                 
+* Michael Moser,  <moser.michael@gmail.com>
 * All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify
@@ -48,13 +48,13 @@ dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
                                                      unsigned long now_time,
                                                      int clients_total_num);
 
-static void dump_statistics (unsigned long period, 
-                             stat_point *http, 
+static void dump_statistics (unsigned long period,
+                             stat_point *http,
                              stat_point *https);
 
 static void print_statistics_footer_to_file (FILE* file);
 
-static void print_statistics_data_to_file (FILE* file, 
+static void print_statistics_data_to_file (FILE* file,
                                            unsigned long timestamp,
                                            char* prot,
                                            long clients_num,
@@ -66,8 +66,8 @@ static void print_operational_statistics (FILE *opstats_file,
                                           op_stat_point*const osp_total,
                                           url_context* url_arr);
 
-static void dump_stat_to_screen (char* protocol, 
-                                 stat_point* sd, 
+static void dump_stat_to_screen (char* protocol,
+                                 stat_point* sd,
                                  unsigned long period);
 
 static void dump_clients (client_context* cctx_array);
@@ -84,71 +84,76 @@ static void store_json_data (batch_context* bctx,
 *
 * Description - Adds counters of one stat_point object to another
 * Input -       *left  -pointer to the stat_point, where counter will be added
-*               *right -pointer to the stat_point, which counter will be 
+*               *right -pointer to the stat_point, which counter will be
 *                       added to the <left>
 * Return Code/Output - None
 ****************************************************************************************/
 void stat_point_add (stat_point* left, stat_point* right)
 {
-  if (!left || !right)
-    return;
+    if (!left || !right)
+        return;
 
-  left->data_in += right->data_in;
-  left->data_out += right->data_out;
-  
-  left->requests += right->requests;
+    left->data_in += right->data_in;
+    left->data_out += right->data_out;
 
-  left->resp_1xx += right->resp_1xx;
-  left->resp_2xx += right->resp_2xx;
-  left->resp_3xx += right->resp_3xx;
-  left->resp_4xx += right->resp_4xx;
-  left->resp_5xx += right->resp_5xx;
-  left->other_errs += right->other_errs;
-  left->url_timeout_errs += right->url_timeout_errs;
-  
-  const int total_points = left->appl_delay_points + right->appl_delay_points;
+    left->requests += right->requests;
 
-  if (total_points > 0)
+    left->resp_1xx += right->resp_1xx;
+    left->resp_2xx += right->resp_2xx;
+    left->resp_3xx += right->resp_3xx;
+    left->resp_4xx += right->resp_4xx;
+    left->resp_5xx += right->resp_5xx;
+    left->other_errs += right->other_errs;
+    left->url_timeout_errs += right->url_timeout_errs;
+
+    const int total_points = left->appl_delay_points + right->appl_delay_points;
+
+    if (total_points > 0)
     {
-      left->appl_delay = (left->appl_delay * left->appl_delay_points  + 
-                 right->appl_delay * right->appl_delay_points) / total_points;
+        left->appl_delay = (left->appl_delay * left->appl_delay_points  +
+                   right->appl_delay * right->appl_delay_points) / total_points;
 
-      left->appl_delay_points = total_points;
+        left->appl_delay_points = total_points;
     }
-  else
-      left->appl_delay = 0;
-
-   const int total_points_2xx = left->appl_delay_2xx_points + right->appl_delay_2xx_points;
-
-  if (total_points_2xx > 0)
+    else
     {
-      left->appl_delay_2xx = (left->appl_delay_2xx * left->appl_delay_2xx_points  + 
-                 right->appl_delay_2xx * right->appl_delay_2xx_points) / total_points_2xx;
-      left->appl_delay_2xx_points = total_points_2xx;
+        left->appl_delay = 0;
     }
-  else
-      left->appl_delay_2xx = 0;
+
+    const int total_points_2xx = left->appl_delay_2xx_points + right->appl_delay_2xx_points;
+
+    if (total_points_2xx > 0)
+    {
+        left->appl_delay_2xx = (left->appl_delay_2xx * left->appl_delay_2xx_points  +
+                   right->appl_delay_2xx * right->appl_delay_2xx_points) / total_points_2xx;
+        left->appl_delay_2xx_points = total_points_2xx;
+    }
+    else
+    {
+        left->appl_delay_2xx = 0;
+    }
+
 }
 
 /****************************************************************************************
 * Function name - stat_point_reset
 *
 * Description - Nulls counters of a stat_point structure
-* 
+*
 * Input -       *point -  pointer to the stat_point
 * Return Code/Output - None
 ****************************************************************************************/
 void stat_point_reset (stat_point* p)
 {
-  if (!p)
-    return;
+    if (!p)
+        return;
 
-  p->data_in = p->data_out = 0;
-  p->requests = p->resp_1xx = p->resp_2xx = p->resp_3xx = p->resp_4xx = 
-      p->resp_5xx = p->other_errs = p->url_timeout_errs =0;
+    p->data_in = p->data_out = 0;
+    p->requests = p->resp_1xx = p->resp_2xx = p->resp_3xx = p->resp_4xx =
+        p->resp_5xx = p->other_errs = p->url_timeout_errs =0;
 
-  p->appl_delay_points = p->appl_delay_2xx_points = 0;
-  p->appl_delay = p->appl_delay_2xx = 0;
+    p->appl_delay_points = p->appl_delay_2xx_points = 0;
+    p->appl_delay = p->appl_delay_2xx = 0;
 
 }
 
@@ -157,32 +162,32 @@ void stat_point_reset (stat_point* p)
 *
 * Description - Adds counters of one op_stat_point object to another
 * Input -       *left  -  pointer to the op_stat_point, where counter will be added
-*               *right -  pointer to the op_stat_point, which counter will be added 
+*               *right -  pointer to the op_stat_point, which counter will be added
 *                         to the <left>
 * Return Code/Output - None
 ****************************************************************************************/
 void op_stat_point_add (op_stat_point* left, op_stat_point* right)
 {
-  size_t i;
-  
-  if (!left || !right)
-    return;
+    size_t i;
 
-  if (left->url_num != right->url_num)
-    return;
-  
-  for ( i = 0; i < left->url_num; i++)
+    if (!left || !right)
+        return;
+
+    if (left->url_num != right->url_num)
+        return;
+
+    for ( i = 0; i < left->url_num; i++)
     {
-      left->url_ok[i] += right->url_ok[i];
-      left->url_failed[i] += right->url_failed[i];
-      left->url_timeouted[i] += right->url_timeouted[i];
-      //left->url_min[i] = 10;
-      //left->url_max[i] = 10;
-      //left->url_avg[i] = 10;
-      //left->url_last[i] = 20;
+        left->url_ok[i] += right->url_ok[i];
+        left->url_failed[i] += right->url_failed[i];
+        left->url_timeouted[i] += right->url_timeouted[i];
+        //left->url_min[i] = 10;
+        //left->url_max[i] = 10;
+        //left->url_avg[i] = 10;
+        //left->url_last[i] = 20;
     }
-  
-  left->call_init_count += right->call_init_count;
+
+    left->call_init_count += right->call_init_count;
 }
 
 /****************************************************************************************
@@ -194,20 +199,20 @@ void op_stat_point_add (op_stat_point* left, op_stat_point* right)
 ****************************************************************************************/
 void op_stat_point_reset (op_stat_point* point)
 {
-  if (!point)
-    return;
+    if (!point)
+        return;
 
-  if (point->url_num)
-  {
-    size_t i;
-    for ( i = 0; i < point->url_num; i++)
+    if (point->url_num)
     {
-      point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = point->url_min[i] = point->url_max[i] = point->url_last[i] = point->url_total_seconds[i] = 0;
+        size_t i;
+        for ( i = 0; i < point->url_num; i++)
+        {
+            point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = point->url_min[i] = point->url_max[i] = point->url_last[i] = point->url_total_seconds[i] = 0;
+        }
     }
-  }
-  /* Don't null point->url_num ! */
 
-  point->call_init_count = 0;
+    /* Don't null point->url_num ! */
+    point->call_init_count = 0;
 }
 
 /****************************************************************************************
@@ -219,55 +224,55 @@ void op_stat_point_reset (op_stat_point* point)
 ****************************************************************************************/
 void op_stat_point_release (op_stat_point* point)
 {
-  if (point->url_ok)
-  {
-    free (point->url_ok);
-    point->url_ok = NULL;
-  }
+    if (point->url_ok)
+    {
+        free (point->url_ok);
+        point->url_ok = NULL;
+    }
 
-  if (point->url_failed)
-  {
-    free (point->url_failed);
-    point->url_failed = NULL;
-  }
+    if (point->url_failed)
+    {
+        free (point->url_failed);
+        point->url_failed = NULL;
+    }
 
-  if (point->url_timeouted)
-  {
-    free (point->url_timeouted);
-    point->url_timeouted = NULL;
-  }
+    if (point->url_timeouted)
+    {
+        free (point->url_timeouted);
+        point->url_timeouted = NULL;
+    }
 
-  if (point->url_min)
-  {
-    free (point->url_min);
-    point->url_min = NULL;
-  }
+    if (point->url_min)
+    {
+        free (point->url_min);
+        point->url_min = NULL;
+    }
 
-  if (point->url_max)
-  {
-    free (point->url_max);
-    point->url_max = NULL;
-  }
+    if (point->url_max)
+    {
+        free (point->url_max);
+        point->url_max = NULL;
+    }
 
-  if (point->url_last)
-  {
-    free (point->url_last);
-    point->url_last = NULL;
-  }
+    if (point->url_last)
+    {
+        free (point->url_last);
+        point->url_last = NULL;
+    }
 
-  if (point->url_total_seconds)
-  {
-    free (point->url_total_seconds);
-    point->url_total_seconds = NULL;
-  }
+    if (point->url_total_seconds)
+    {
+        free (point->url_total_seconds);
+        point->url_total_seconds = NULL;
+    }
 
-  memset (point, 0, sizeof (op_stat_point));
+    memset (point, 0, sizeof (op_stat_point));
 }
 
 /****************************************************************************************
 * Function name - op_stat_point_init
 *
-* Description - Initializes an allocated op_stat_point by allocating relevant pointer 
+* Description - Initializes an allocated op_stat_point by allocating relevant pointer
 * 		fields for counters
 *
 * Input -       *point  - pointer to the op_stat_point, where counter will be added
@@ -277,35 +282,37 @@ void op_stat_point_release (op_stat_point* point)
 ****************************************************************************************/
 int op_stat_point_init (op_stat_point* point, size_t url_num)
 {
- 
-  if (! point)
-    return -1;
+    if (! point)
+      return -1;
 
-  if (url_num)
-  { 
-    if (!(point->url_ok = calloc (url_num, sizeof (unsigned long))) ||
-        !(point->url_failed = calloc (url_num, sizeof (unsigned long))) ||
-        !(point->url_timeouted = calloc (url_num, sizeof (unsigned long))) ||
-        !(point->url_min = calloc (url_num, sizeof (unsigned long))) ||
-        !(point->url_max = calloc (url_num, sizeof (unsigned long))) ||
-        !(point->url_last = calloc (url_num, sizeof (unsigned long))) ||
-        !(point->url_total_seconds = calloc (url_num, sizeof (unsigned long)))
-       )
+    if (url_num)
     {
-       goto allocation_failed;
+      if (!(point->url_ok = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_failed = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_timeouted = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_min = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_max = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_last = calloc (url_num, sizeof (unsigned long))) ||
+          !(point->url_total_seconds = calloc (url_num, sizeof (unsigned long)))
+         )
+      {
+          goto allocation_failed;
+      }
+      else
+      {
+          point->url_num = url_num;
+      }
     }
-    else
-      point->url_num = url_num;
-  }
 
-  point->call_init_count = 0;
+    point->call_init_count = 0;
 
-  return 0;
+    return 0;
 
-  allocation_failed:
-    fprintf(stderr, "%s - calloc () failed with errno %d.\n", 
-              __func__, errno);
-  return -1;
+    allocation_failed:
+        fprintf(stderr, "%s - calloc () failed with errno %d.\n",
+                  __func__, errno);
+
+    return -1;
 }
 
 /****************************************************************************************
@@ -321,14 +328,14 @@ int op_stat_point_init (op_stat_point* point, size_t url_num)
 *
 * Return Code/Output - None
 ****************************************************************************************/
-void op_stat_update (op_stat_point* op_stat, 
-                     int current_state, 
+void op_stat_update (op_stat_point* op_stat,
+                     int current_state,
                      int prev_state,
                      size_t current_url_index,
                      size_t prev_url_index)
 {
   (void) current_url_index;
-  
+
   if (!op_stat)
     return;
 
@@ -337,7 +344,7 @@ void op_stat_update (op_stat_point* op_stat,
     (current_state == CSTATE_ERROR) ? op_stat-> url_failed[prev_url_index]++ :
       op_stat->url_ok[prev_url_index]++;
   }
-  
+
   return;
 }
 
@@ -358,7 +365,7 @@ void op_stat_call_init_count_inc (op_stat_point* op_stat)
 * Function name - get_tick_count
 *
 * Description - Delivers timestamp in milliseconds.
-* 
+*
 * Return Code/Output - timestamp in milliseconds or -1 on errors
 ****************************************************************************************/
 unsigned long get_tick_count ()
@@ -367,7 +374,7 @@ unsigned long get_tick_count ()
 
   if (gettimeofday (&tval, NULL) == -1)
   {
-    fprintf(stderr, "%s - gettimeofday () failed with errno %d.\n", 
+    fprintf(stderr, "%s - gettimeofday () failed with errno %d.\n",
             __func__, errno);
     exit (1);
   }
@@ -379,12 +386,12 @@ unsigned long get_tick_count ()
 /****************************************************************************************
 * Function name - dump_final_statistics
 *
-* Description - Dumps final statistics counters to stdout and statistics file using 
+* Description - Dumps final statistics counters to stdout and statistics file using
 *               print_snapshot_interval_statistics and print_statistics_* functions.
 *               At the end calls dump_clients () to dump the clients table.
 *
-* Input -       *cctx - pointer to client context, where the decision to 
-*                       complete loading (and dump) has been made. 
+* Input -       *cctx - pointer to client context, where the decision to
+*                       complete loading (and dump) has been made.
 * Return Code/Output - None
 ****************************************************************************************/
 void dump_final_statistics (client_context* cctx)
@@ -399,36 +406,36 @@ void dump_final_statistics (client_context* cctx)
     {
       stat_point_add (&bctx->http_delta, &(bctx + i)->http_delta);
       stat_point_add (&bctx->https_delta, &(bctx + i)->https_delta);
-          
+
       /* Other threads statistics - reset just after collecting */
-      stat_point_reset (&(bctx + i)->http_delta); 
+      stat_point_reset (&(bctx + i)->http_delta);
       stat_point_reset (&(bctx + i)->https_delta);
     }
   }
-  
+
   print_snapshot_interval_statistics (now - bctx->last_measure,
-		&bctx->http_delta,  
+		&bctx->http_delta,
 		&bctx->https_delta);
 
   stat_point_add (&bctx->http_total, &bctx->http_delta);
-  stat_point_add (&bctx->https_total, &bctx->https_delta); 
-    
+  stat_point_add (&bctx->https_total, &bctx->https_delta);
+
   fprintf(stderr,"\n==================================================="
           "====================================\n");
-  fprintf(stderr,"End of the test for batch: %-10.10s\n", bctx->batch_name); 
+  fprintf(stderr,"End of the test for batch: %-10.10s\n", bctx->batch_name);
   fprintf(stderr,"======================================================"
           "=================================\n\n");
-  
+
   now = get_tick_count();
 
   const int seconds_run = (int)(now - bctx->start_time)/ 1000;
   if (!seconds_run)
     return;
-  
-  fprintf(stdout,"\nTest total duration was %d seconds and CAPS average %ld:\n", 
+
+  fprintf(stdout,"\nTest total duration was %d seconds and CAPS average %ld:\n",
           seconds_run, bctx->op_total.call_init_count / seconds_run);
 
-  dump_statistics (seconds_run, 
+  dump_statistics (seconds_run,
                    &bctx->http_total,
                    &bctx->https_total);
 
@@ -438,17 +445,17 @@ void dump_final_statistics (client_context* cctx)
     if (i)
     {
       op_stat_point_add (&bctx->op_delta, &(bctx + i)->op_delta );
-          
+
       /* Other threads operational statistics - reset just after collecting */
       op_stat_point_reset (&(bctx + i)->op_delta);
     }
   }
 
   op_stat_point_add (&bctx->op_total, &bctx->op_delta);
-  
+
   print_operational_statistics (bctx->opstats_file,
-                                &bctx->op_delta, 
-                                &bctx->op_total, 
+                                &bctx->op_delta,
+                                &bctx->op_total,
                                 bctx->url_ctx_array);
 
   store_json_data(bctx, now, 0, &bctx->op_total, &bctx->http_total, &bctx->https_total);
@@ -460,15 +467,15 @@ void dump_final_statistics (client_context* cctx)
 
     const unsigned long loading_t = now - bctx->start_time;
     const unsigned long loading_time = loading_t ? loading_t : 1;
- 
+
     print_statistics_data_to_file (bctx->statistics_file,
 				     loading_time/1000,
 				     UNSECURE_APPL_STR,
 				     pending_active_and_waiting_clients_num_stat (bctx),
 				     &bctx->http_total,
 				     loading_time);
-			
-    print_statistics_data_to_file (bctx->statistics_file, 
+
+    print_statistics_data_to_file (bctx->statistics_file,
                                    loading_time/1000,
 				     SECURE_APPL_STR,
 				     pending_active_and_waiting_clients_num_stat (bctx),
@@ -485,7 +492,7 @@ void dump_final_statistics (client_context* cctx)
   if (bctx->dump_opstats)
       (void)fprintf (stderr,"- %s.ops for operational statistics.\n",
       bctx->batch_name);
-  (void)fprintf (stderr, 
+  (void)fprintf (stderr,
            "Add -v and -u options to the command line for "
 	   "verbose output to %s.log file.\n",bctx->batch_name);
 }
@@ -501,10 +508,10 @@ void dump_final_statistics (client_context* cctx)
 
 char *ascii_time (char *tbuf)
 {
-  time_t timeb;
+    time_t timeb;
 
-  (void)time(&timeb);
-  return ctime_r(&timeb,tbuf);
+    (void)time(&timeb);
+    return ctime_r(&timeb,tbuf);
 }
 
 /****************************************************************************************
@@ -531,8 +538,8 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
         pending_active_and_waiting_clients_num_stat (bctx + i);
     }
 
-  dump_snapshot_interval_and_advance_total_statistics (bctx, 
-                                                       now, 
+  dump_snapshot_interval_and_advance_total_statistics (bctx,
+                                                       now,
                                                        total_current_clients);
 
   int seconds_run = (int)(now - bctx->start_time)/ 1000;
@@ -543,10 +550,10 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
 
   fprintf(stderr,"--------------------------------------------------------------------------------\n");
 
-  fprintf(stderr,"Summary stats (runs:%d secs, CAPS-average:%ld):\n", 
-          seconds_run, bctx->op_total.call_init_count / seconds_run); 
-  
-  dump_statistics (seconds_run, 
+  fprintf(stderr,"Summary stats (runs:%d secs, CAPS-average:%ld):\n",
+          seconds_run, bctx->op_total.call_init_count / seconds_run);
+
+  dump_statistics (seconds_run,
                    &bctx->http_total,
                    &bctx->https_total);
 
@@ -555,14 +562,14 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
 
   long total_clients_rampup_inc = 0;
   int total_client_num_max = 0;
-  
+
   for (i = 0; i <= threads_subbatches_num; i++)
   {
     total_clients_rampup_inc += (bctx + i)->clients_rampup_inc;
     total_client_num_max += (bctx + i)->client_num_max;
   }
 
-  if (bctx->do_client_num_gradual_increase && 
+  if (bctx->do_client_num_gradual_increase &&
       (bctx->stop_client_num_gradual_increase == 0))
   {
     fprintf(stderr," Automatic: adding %ld clients/sec. Stop inc and manual [M].\n",
@@ -576,7 +583,7 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
       fprintf(stderr," Manual: clients:max[%d],curr[%d]. Inc num: [+|*].",
               total_client_num_max, total_current_clients);
 
-      if (bctx->stop_client_num_gradual_increase && 
+      if (bctx->stop_client_num_gradual_increase &&
           bctx->clients_rampup_inc &&
           current_clients < bctx->client_num_max)
         {
@@ -596,15 +603,15 @@ void dump_snapshot_interval (batch_context* bctx, unsigned long now)
 /****************************************************************************************
 * Function name - print_snapshot_interval_statistics
 *
-* Description - Outputs latest snapshot interval statistics. 
+* Description - Outputs latest snapshot interval statistics.
 *
 * Input -       period - latest time period in milliseconds
 *               *http  - pointer to the HTTP collected statistics to output
 *               *https - pointer to the HTTPS collected statistics to output
 * Return Code/Output - None
 ****************************************************************************************/
-void print_snapshot_interval_statistics (unsigned long period,  
-                                         stat_point *http, 
+void print_snapshot_interval_statistics (unsigned long period,
+                                         stat_point *http,
                                          stat_point *https)
 {
   period /= 1000;
@@ -621,8 +628,8 @@ void print_snapshot_interval_statistics (unsigned long period,
 /****************************************************************************************
 * Function name - dump_snapshot_interval_and_advance_total_statistics
 *
-* Description - Dumps snapshot_interval statistics for the latest loading time 
-*               period and adds this statistics to the total loading counters. 
+* Description - Dumps snapshot_interval statistics for the latest loading time
+*               period and adds this statistics to the total loading counters.
 *
 * Input -       *bctx    - pointer to batch context
 *               now_time - current time in msec since the epoch
@@ -635,14 +642,14 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
 {
 
   int i;
-  const unsigned long delta_t = now_time - bctx->last_measure; 
+  const unsigned long delta_t = now_time - bctx->last_measure;
   const unsigned long delta_time = delta_t ? delta_t : 1;
 
   if (stop_loading)
   {
     dump_final_statistics (bctx->cctx_array);
     screen_release ();
-    exit (1); 
+    exit (1);
   }
 
   fprintf(stderr,"============  loading batch is: %-10.10s ===================="
@@ -666,7 +673,7 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
 
   print_operational_statistics (bctx->opstats_file,
                                 &bctx->op_delta,
-                                &bctx->op_total, 
+                                &bctx->op_total,
                                 bctx->url_ctx_array);
 
 
@@ -687,7 +694,7 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
       stat_point_add (&bctx->https_delta, &(bctx + i)->https_delta);
 
       /* Other threads statistics - reset just after collecting */
-      stat_point_reset (&(bctx + i)->http_delta); 
+      stat_point_reset (&(bctx + i)->http_delta);
       stat_point_reset (&(bctx + i)->https_delta);
     }
   }
@@ -695,8 +702,8 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
   stat_point_add (&bctx->http_total, &bctx->http_delta);
   stat_point_add (&bctx->https_total, &bctx->https_delta);
 
-  print_snapshot_interval_statistics(delta_time, 
-                                     &bctx->http_delta,  
+  print_snapshot_interval_statistics(delta_time,
+                                     &bctx->http_delta,
                                      &bctx->https_delta);
 
   store_json_data(bctx, now_time, clients_total_num, &bctx->op_total, &bctx->http_total, &bctx->https_total);
@@ -711,18 +718,18 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
                                    clients_total_num,
                                    &bctx->http_delta,
                                    delta_time);
-    
-    print_statistics_data_to_file (bctx->statistics_file, 
+
+    print_statistics_data_to_file (bctx->statistics_file,
                                    timestamp_sec,
-                                   SECURE_APPL_STR, 
+                                   SECURE_APPL_STR,
                                      clients_total_num,
                                      &bctx->https_delta,
                                      delta_time);
   }
 
-  stat_point_reset (&bctx->http_delta); 
+  stat_point_reset (&bctx->http_delta);
   stat_point_reset (&bctx->https_delta);
-        
+
   bctx->last_measure = now_time;
 }
 
@@ -731,14 +738,14 @@ void dump_snapshot_interval_and_advance_total_statistics (batch_context* bctx,
 *
 * Description - Dumps statistics to screen
 *
-* Input -       period - time interval of the statistics collection in msecs. 
+* Input -       period - time interval of the statistics collection in msecs.
 *               *http  - pointer to stat_point structure with HTTP/FTP counters collection
 *               *https - pointer to stat_point structure with HTTPS/FTPS counters collection
 *
 * Return Code/Output - None
 ****************************************************************************************/
-static void dump_statistics (unsigned long period,  
-                             stat_point *http, 
+static void dump_statistics (unsigned long period,
+                             stat_point *http,
                              stat_point *https)
 {
   if (period == 0)
@@ -748,7 +755,7 @@ static void dump_statistics (unsigned long period,
             __func__);
     return;
   }
-  
+
   dump_stat_to_screen (UNSECURE_APPL_STR, http, period);
   dump_stat_to_screen (SECURE_APPL_STR, https, period);
 }
@@ -761,18 +768,18 @@ static void dump_statistics (unsigned long period,
 *
 * Input -       *protocol - name of the application/protocol
 *               *sd       - pointer to statistics data with statistics counters collection
-*               period    - time interval of the statistics collection in msecs. 
+*               period    - time interval of the statistics collection in msecs.
 *
 * Return Code/Output - None
 ****************************************************************************************/
-static void dump_stat_to_screen (char* protocol, 
-                                 stat_point* sd, 
+static void dump_stat_to_screen (char* protocol,
+                                 stat_point* sd,
                                  unsigned long period)
 {
   fprintf(stderr, "%sReq:%ld,1xx:%ld,2xx:%ld,3xx:%ld,4xx:%ld,5xx:%ld,Err:%ld,T-Err:%ld,"
           "D:%ldms,D-2xx:%ldms,Ti:%lldB/s,To:%lldB/s\n",
           protocol, sd->requests, sd->resp_1xx, sd->resp_2xx, sd->resp_3xx,
-          sd->resp_4xx, sd->resp_5xx, sd->other_errs, sd->url_timeout_errs, sd->appl_delay, 
+          sd->resp_4xx, sd->resp_5xx, sd->other_errs, sd->url_timeout_errs, sd->appl_delay,
           sd->appl_delay_2xx, sd->data_in/period, sd->data_out/period);
 
   //fprintf(stdout, "{'protocol': '%s', 'total': %ld}", protocol, sd->requests);
@@ -787,7 +794,7 @@ static void dump_stat_to_screen (char* protocol,
 ****************************************************************************************/
 void print_statistics_header (FILE* file)
 {
-    fprintf (file, 
+    fprintf (file,
              "RunTime(sec),Appl,Clients,Req,1xx,2xx,3xx,4xx,5xx,Err,T-Err,D,D-2xx,Ti,To\n");
     fflush (file);
 }
@@ -795,7 +802,7 @@ void print_statistics_header (FILE* file)
 /****************************************************************************************
 * Function name - print_statistics_footer_to_file
 *
-* Description - Prints to a file separation string between the snapshot_interval statistics and 
+* Description - Prints to a file separation string between the snapshot_interval statistics and
 *               the final statistics number for the total loading process
 *
 * Input -       *file - open file pointer
@@ -810,7 +817,7 @@ static void print_statistics_footer_to_file (FILE* file)
 /****************************************************************************************
 * Function name - print_statistics_data_to_file
 *
-* Description - Prints to a file batch statistics. At run time the interval statistics 
+* Description - Prints to a file batch statistics. At run time the interval statistics
 *               is printed and at the end of a load - summary statistics.
 *
 * Input -       *file       - open file pointer
@@ -818,14 +825,14 @@ static void print_statistics_footer_to_file (FILE* file)
 *               *protocol   - name of the applications/protocols
 *               clients_num - number of active (running + waiting) clients
 *               *sd         - pointer to statistics data with statistics counters collection
-*               period      - time interval of the statistics collection in msecs. 
+*               period      - time interval of the statistics collection in msecs.
 *
 * Return Code/Output - None
 ****************************************************************************************/
-static void print_statistics_data_to_file (FILE* file, 
+static void print_statistics_data_to_file (FILE* file,
                                            unsigned long timestamp,
                                            char* prot,
-                                           long clients_num, 
+                                           long clients_num,
                                            stat_point *sd,
                                            unsigned long period)
 {
@@ -837,8 +844,8 @@ static void print_statistics_data_to_file (FILE* file,
 
     fprintf (file, "%ld, %s, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %lld, %lld\n",
              timestamp, prot, clients_num, sd->requests, sd->resp_1xx, sd->resp_2xx,
-             sd->resp_3xx, sd->resp_4xx, sd->resp_5xx, 
-             sd->other_errs, sd->url_timeout_errs, sd->appl_delay, sd->appl_delay_2xx, 
+             sd->resp_3xx, sd->resp_4xx, sd->resp_5xx,
+             sd->other_errs, sd->url_timeout_errs, sd->appl_delay, sd->appl_delay_2xx,
              sd->data_in/period, sd->data_out/period);
     fflush (file);
 }
@@ -861,14 +868,14 @@ static void dump_clients (client_context* cctx_array)
   int i;
 
   /*
-    Init batch logfile for the batch clients output 
+    Init batch logfile for the batch clients output
   */
   sprintf (client_table_filename, "%s.ctx", bctx->batch_name);
-  
+
   if (!(ct_file = fopen(client_table_filename, "w")))
     {
-      fprintf (stderr, 
-               "%s - \"%s\" - failed to open file \"%s\" with errno %d.\n", 
+      fprintf (stderr,
+               "%s - \"%s\" - failed to open file \"%s\" with errno %d.\n",
                __func__, bctx->batch_name, client_table_filename, errno);
       return;
     }
@@ -911,7 +918,7 @@ static void print_operational_statistics (FILE *opstats_file,
         {
           (void)fprintf (opstats_file,
               "URL%ld:%-12.12s\t%-6ld %-8ld\t\t%-6ld %-8ld\t\t%-6ld %-8ld\n",
-                   i, url_arr[i].url_short_name, 
+                   i, url_arr[i].url_short_name,
                    osp_curr->url_ok[i], osp_total->url_ok[i],
                    osp_curr->url_failed[i], osp_total->url_failed[i],
                    osp_curr->url_timeouted[i], osp_total->url_timeouted[i]);

@@ -1,7 +1,7 @@
 /*
 *     conf.c
 *
-* 2006-2007 Copyright (c) 
+* 2006-2007 Copyright (c)
 * Robert Iakobashvili, <coroberti@gmail.com>
 * All rights reserved.
 *
@@ -33,7 +33,7 @@
 /*
   Command line configuration options. Setting defaults here.
 */
- /* Configurable time to cut connect () in prog */  
+ /* Configurable time to cut connect () in prog */
 int connect_timeout = 5;
 
 /* Flag, whether to perform verbose logging */
@@ -42,13 +42,13 @@ int verbose_logging = 0;
 /* Flag, whether to run batches as batch per thread. */
 int threads_subbatches_num = 0;
 
-/* 
+/*
    Time in seconds between snapshot statistics printouts to
    screen as well as to the statistics file
 */
 long snapshot_statistics_timeout = 3; /* Seconds */
-/*  
-    Rewind logfile, if above the size above MB 
+/*
+    Rewind logfile, if above the size above MB
 */
 long logfile_rewind_size = 1024;
 
@@ -75,21 +75,19 @@ char config_file[PATH_MAX + 1];
 /* Name of the proxy */
 char config_proxy[PATH_MAX];
 
-/* 
-   On errors, whether to continue loading for this client 
+/*
+   On errors, whether to continue loading for this client
    from the next cycle, or to give it up.
  */
 unsigned long error_recovery_client = 1; /* Default: error recovery and continue */
-
-
 
 int parse_command_line (int argc, char *argv [])
 {
   int rget_opt = 0;
 
-    while ((rget_opt = getopt (argc, argv, "c:dehf:i:l:m:op:rst:vuwx:")) != EOF) 
+    while ((rget_opt = getopt (argc, argv, "c:dehf:i:l:m:op:rst:vuwx:")) != EOF)
     {
-      switch (rget_opt) 
+      switch (rget_opt)
         {
         case 'c': /* Connection establishment timeout */
           if (!optarg || (connect_timeout = atoi (optarg)) <= 0)
@@ -102,7 +100,7 @@ int parse_command_line (int argc, char *argv [])
         case 'd':
           detailed_logging = 1;
           break;
-          
+
         case 'e':
           error_recovery_client = 0;
           break;
@@ -125,14 +123,14 @@ int parse_command_line (int argc, char *argv [])
           if (!optarg ||
               (snapshot_statistics_timeout = atoi (optarg)) < 1)
             {
-              fprintf (stderr, "%s error: -i option should be followed by a number >= 1.\n", 
+              fprintf (stderr, "%s error: -i option should be followed by a number >= 1.\n",
                        __func__);
               return -1;
             }
           break;
-            
+
         case 'l': /* Number of cycles before a logfile rewinds. */
-          if (!optarg || 
+          if (!optarg ||
               (logfile_rewind_size = atol (optarg)) < 2)
             {
               fprintf (stderr, "%s: error: -l option should be followed by a number >= 2.\n",
@@ -143,8 +141,8 @@ int parse_command_line (int argc, char *argv [])
 
         case 'm': /* Modes of loading: SMOOTH and STORMING */
 
-            if (!optarg || 
-                (((loading_mode = atol (optarg)) != LOAD_MODE_SMOOTH && 
+            if (!optarg ||
+                (((loading_mode = atol (optarg)) != LOAD_MODE_SMOOTH &&
                   loading_mode != LOAD_MODE_HYPER )))
             {
               fprintf (stderr, "%s error: -m to be followed by a number either %d or %d.\n",
@@ -165,27 +163,27 @@ int parse_command_line (int argc, char *argv [])
           stderr_print_client_msg = 1;
           break;
 
-        case 't': /* Create sub-batches and run each sub-batch of clients 
+        case 't': /* Create sub-batches and run each sub-batch of clients
                      in a dedicated thread. */
           if (!optarg ||
               (threads_subbatches_num = atoi (optarg)) < 2)
             {
-              fprintf (stderr, "%s error: -t option should be followed by a number >= 2.\n", 
+              fprintf (stderr, "%s error: -t option should be followed by a number >= 2.\n",
                        __func__);
               return -1;
             }
             break;
 
         case 'v': /* accumulate verbosity */
-          verbose_logging += 1; 
+          verbose_logging += 1;
           break;
 
         case 'u':
-          url_logging = 1; 
+          url_logging = 1;
           break;
 
         case 'w':
-          warnings_skip = 1; 
+          warnings_skip = 1;
           break;
 
         case 'x': /* set/unset proxy */
@@ -198,14 +196,14 @@ int parse_command_line (int argc, char *argv [])
             }
           break;
 
-        default: 
+        default:
             fprintf (stderr, "%s error: not supported option\n", __func__);
           print_help ();
           return -1;
         }
     }
 
-  if (optind < argc) 
+  if (optind < argc)
     {
         fprintf (stderr, "%s error: non-option argv-elements: ", __func__);
         while (optind < argc)

@@ -1,9 +1,9 @@
 /*
 *     statistics.h
 *
-* 2006-2007 Copyright (c) 
+* 2006-2007 Copyright (c)
 * Robert Iakobashvili, <coroberti@gmail.com>
-* Michael Moser,  <moser.michael@gmail.com>                 
+* Michael Moser,  <moser.michael@gmail.com>
 * All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 
 /*
   stat_point -the structure is used to collect loading statistics.
-  Two instances of the structure are kept by each batch context. 
+  Two instances of the structure are kept by each batch context.
   One object is used for the latest snapshot interval stats and another
   for the total summary values.
 */
@@ -39,6 +39,7 @@ typedef struct stat_point
 {
    /* Inbound bytes number */
   unsigned long long data_in;
+
    /* Outbound bytes number */
   unsigned long long data_out;
 
@@ -63,22 +64,24 @@ typedef struct stat_point
   /* Errors of resolving, connecting, internal errors, etc. */
   unsigned long other_errs;
 
-  /* 
-     URL Timeout errors of not accomplishing url fetch prior to the 
+  /*
+     URL Timeout errors of not accomplishing url fetch prior to the
      url-completion timer being expired .
   */
   unsigned long url_timeout_errs;
 
    /* Num of data points used to calculate average application delay */
   int appl_delay_points;
+
   /* Average delay in msec between request and response */
   unsigned long  appl_delay;
 
-  /* 
-     Num of data points used to calculate average application delay 
+  /*
+     Num of data points used to calculate average application delay
      for 2xx-OK responses.
   */
   int appl_delay_2xx_points;
+
    /* Average delay in msec between request and 2xx-OK response */
   unsigned long  appl_delay_2xx;
 
@@ -122,7 +125,7 @@ typedef struct op_stat_point
 *
 * Description - Adds counters of one stat_point object to another
 * Input -       *left  - pointer to the stat_point, where counter will be added
-*               *right - pointer to the stat_point, which counter will be added 
+*               *right - pointer to the stat_point, which counter will be added
 *                        to the <left>
 * Return Code/Output - None
 ********************************************************************************/
@@ -132,7 +135,7 @@ void stat_point_add (stat_point* left, stat_point* right);
 * Function name - stat_point_reset
 *
 * Description - Nulls counters of a stat_point structure
-* 
+*
 * Input -       *point -  pointer to the stat_point
 * Return Code/Output - None
 *******************************************************************************/
@@ -144,7 +147,7 @@ void stat_point_reset (stat_point* point);
 *
 * Description - Adds counters of one op_stat_point object to another
 * Input -       *left  -  pointer to the op_stat_point, where counter will be added
-*               *right -  pointer to the op_stat_point, which counter will be 
+*               *right -  pointer to the op_stat_point, which counter will be
 *                         added to the <left>
 * Return Code/Output - None
 ********************************************************************************/
@@ -165,7 +168,7 @@ void op_stat_point_reset (op_stat_point* point);
 /*******************************************************************************
 * Function name - op_stat_point_init
 *
-* Description - Initializes an allocated op_stat_point by allocating relevant 
+* Description - Initializes an allocated op_stat_point by allocating relevant
 *               pointer fields for counters
 *
 * Input -       *point  -pointer to the op_stat_point, where counter will be added
@@ -179,7 +182,7 @@ int op_stat_point_init (op_stat_point* point, size_t url_num);
 * Function name -  op_stat_point_release
 *
 * Description - Releases memory allocated by op_stat_point_init ()
-* 
+*
 * Input -       *point -  pointer to the op_stat_point, where counter will be added
 * Return Code/Output - None
 ********************************************************************************/
@@ -190,7 +193,7 @@ void op_stat_point_release (op_stat_point* point);
 *
 * Description - Updates operation statistics using information from client context
 *
-* Input -       *point             - pointer to the op_stat_point, where counters 
+* Input -       *point             - pointer to the op_stat_point, where counters
 * 			             to be updated
 *               current_state      - current state of a client
 *               prev_state         - previous state of a client
@@ -198,8 +201,8 @@ void op_stat_point_release (op_stat_point* point);
 *               prev_uas_url_index - previous url index of a the client
 * Return Code/Output - None
 *********************************************************************************/
-void op_stat_update (op_stat_point* op_stat, 
-                     int current_state, 
+void op_stat_update (op_stat_point* op_stat,
+                     int current_state,
                      int prev_state,
                      size_t current_url_index,
                      size_t prev_url_index);
@@ -214,12 +217,12 @@ struct batch_context;
 /****************************************************************************************
 * Function name - dump_final_statistics
 *
-* Description - Dumps final statistics counters to stdout and statistics file using 
+* Description - Dumps final statistics counters to stdout and statistics file using
 *               print_snapshot_interval_statistics and print_statistics_* functions.
 *               At the end calls dump_clients () to dump the clients table.
 *
-* Input -       *cctx - pointer to client context, where the decision to complete loading 
-*                       (and dump) has been made. 
+* Input -       *cctx - pointer to client context, where the decision to complete loading
+*                       (and dump) has been made.
 * Return Code/Output - None
 ****************************************************************************************/
 void dump_final_statistics (struct client_context* cctx);
@@ -251,15 +254,15 @@ void dump_snapshot_interval (struct batch_context* bctx, unsigned long now);
 /****************************************************************************************
 * Function name - print_snapshot_interval_statistics
 *
-* Description - Calculates and outputs statistics for the latests snapshot interval. 
-*                     
+* Description - Calculates and outputs statistics for the latests snapshot interval.
+*
 * Input -       clients - number of active clients
 *               period  - latest time period in milliseconds
 *               *http   - pointer to the HTTP collected statistics to output
 *               *https  - pointer to the HTTPS collected statistics to output
 * Return Code/Output - None
 ****************************************************************************************/
-void print_snapshot_interval_statistics (unsigned long period,  
+void print_snapshot_interval_statistics (unsigned long period,
                                          stat_point *http,
                                          stat_point *https);
 

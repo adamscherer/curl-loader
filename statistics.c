@@ -943,7 +943,9 @@ static void store_json_data (batch_context* bctx,
     json_object_object_add(stat_object, "5xxRequests", json_object_new_int(http->resp_5xx + https->resp_5xx));
     json_object_object_add(stat_object, "totalDataIn", json_object_new_int(http->data_in + https->data_in));
     json_object_object_add(stat_object, "totalDataOut", json_object_new_int(http->data_out + https->data_out));
-    json_object_object_add(stat_object, "avgTime", json_object_new_int((http->appl_delay + https->appl_delay) / 2));
+    json_object_object_add(stat_object, "avgTime", json_object_new_int(
+        ((http.appl_delay * http.appl_delay_points) + (https.appl_delay * https.appl_delay_points))
+          / (http.appl_delay_points + https.appl_delay_points) );
 
     my_array = json_object_new_array();
     unsigned long i;

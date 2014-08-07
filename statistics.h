@@ -85,6 +85,24 @@ typedef struct stat_point
      /* Average delay in msec between request and 2xx-OK response */
     unsigned long  appl_delay_2xx;
 
+    /* Min response time */
+    unsigned long min_resp;
+
+    /* Max response time */
+    unsigned long max_resp;
+
+    /* Last response time */
+    unsigned long last_resp;
+
+    /* Min 2xx response time */
+    unsigned long min_resp_2xx;
+
+    /* Max 2xx response time */
+    unsigned long max_resp_2xx;
+
+    /* Last 2xx response time */
+    unsigned long last_resp_2xx;
+
 } stat_point;
 
 /*
@@ -106,14 +124,6 @@ typedef struct op_stat_point
 
     /* Array of url counters for timeouted fetches */
     unsigned long* url_timeouted;
-
-    unsigned long* url_min;
-
-    unsigned long* url_max;
-
-    unsigned long* url_last;
-
-    unsigned long* url_total_seconds;
 
     /* Used for CAPS calculation */
     unsigned long call_init_count;
@@ -187,18 +197,6 @@ int op_stat_point_init (op_stat_point* point, size_t url_num);
 * Return Code/Output - None
 ********************************************************************************/
 void op_stat_point_release (op_stat_point* point);
-
-/*******************************************************************************
-* Function name - url_stat_point_init
-*
-* Description - Initializes an allocated stat_point by allocating relevant
-*               pointer fields for counters
-*
-* Input -       *point  -pointer to the stat_point, where counter will be added
-*               url_num -number of urls
-* Return Code/Output - None
-********************************************************************************/
-int url_stat_point_init (stat_point* point, size_t url_num);
 
 
 /*******************************************************************************

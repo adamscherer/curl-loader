@@ -2689,30 +2689,30 @@ int alloc_client_fetch_decision_array (batch_context* bctx)
 *******************************************************************************/
 int init_operational_statistics(batch_context* bctx)
 {
-  fprintf (stderr, "%s -  init of op_delta start.\n",__func__);
-  if (op_stat_point_init(&bctx->op_delta,
-                         bctx->urls_num) == -1)
-  {
-      fprintf (stderr, "%s - error: init of op_delta failed.\n",__func__);
-      return -1;
-  }
+    fprintf (stderr, "%s -  init of op_delta start.\n",__func__);
+    if (op_stat_point_init(&bctx->op_delta,
+                           bctx->urls_num) == -1)
+    {
+        fprintf (stderr, "%s - error: init of op_delta failed.\n",__func__);
+        return -1;
+    }
 
-  if (op_stat_point_init(&bctx->op_total,
-                         bctx->urls_num) == -1)
-  {
-      fprintf (stderr, "%s - error: init of op_total failed.",__func__);
-      return -1;
-  }
+    if (op_stat_point_init(&bctx->op_total,
+                           bctx->urls_num) == -1)
+    {
+        fprintf (stderr, "%s - error: init of op_total failed.",__func__);
+        return -1;
+    }
 
-  fprintf (stderr, "%s -  init of stat_point for urls start.\n",__func__);
-  if (url_stat_point_init(&bctx->url_stats,
-                         bctx->urls_num) == -1)
-  {
-      fprintf (stderr, "%s - error: init of stat_point for urls failed.\n",__func__);
-      return -1;
-  }
+    fprintf (stderr, "%s -  init of stat_point for urls start.\n",__func__);
+    if (! (bctx->url_stats =
+           (stat_point *) cl_calloc (bctx->urls_num, sizeof (stat_point))))
+    {
+        fprintf (stderr, "%s - error: init of stat_point for urls failed.\n",__func__);
+        return -1;
+    }
 
-  return 0;
+    return 0;
 }
 
 

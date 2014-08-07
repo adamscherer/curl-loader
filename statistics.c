@@ -181,10 +181,6 @@ void op_stat_point_add (op_stat_point* left, op_stat_point* right)
         left->url_ok[i] += right->url_ok[i];
         left->url_failed[i] += right->url_failed[i];
         left->url_timeouted[i] += right->url_timeouted[i];
-        //left->url_min[i] = 10;
-        //left->url_max[i] = 10;
-        //left->url_avg[i] = 10;
-        //left->url_last[i] = 20;
     }
 
     left->call_init_count += right->call_init_count;
@@ -207,7 +203,7 @@ void op_stat_point_reset (op_stat_point* point)
         size_t i;
         for ( i = 0; i < point->url_num; i++)
         {
-            point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = point->url_min[i] = point->url_max[i] = point->url_last[i] = point->url_total_seconds[i] = 0;
+            point->url_ok[i] = point->url_failed[i] = point->url_timeouted[i] = 0;
         }
     }
 
@@ -228,36 +224,6 @@ void url_stat_point_release (stat_point* point)
     point = NULL;
 
     memset (point, 0, sizeof (stat_point));
-}
-
-/****************************************************************************************
-* Function name - op_stat_point_init
-*
-* Description - Initializes an allocated op_stat_point by allocating relevant pointer
-* 		fields for counters
-*
-* Input -       *point  - pointer to the op_stat_point, where counter will be added
-*               url_num - number of urls
-*
-* Return Code/Output - None
-****************************************************************************************/
-int url_stat_point_init (stat_point* point, size_t url_num)
-{
-    if (url_num)
-    {
-        if (!(point = (stat_point *) cl_calloc (url_num, sizeof (stat_point))))
-        {
-            goto allocation_failed;
-        }
-    }
-
-    return 0;
-
-    allocation_failed:
-        fprintf(stderr, "%s - calloc () failed with errno %d.\n",
-                  __func__, errno);
-
-    return -1;
 }
 
 /****************************************************************************************
@@ -287,30 +253,6 @@ void op_stat_point_release (op_stat_point* point)
         point->url_timeouted = NULL;
     }
 
-    if (point->url_min)
-    {
-        free (point->url_min);
-        point->url_min = NULL;
-    }
-
-    if (point->url_max)
-    {
-        free (point->url_max);
-        point->url_max = NULL;
-    }
-
-    if (point->url_last)
-    {
-        free (point->url_last);
-        point->url_last = NULL;
-    }
-
-    if (point->url_total_seconds)
-    {
-        free (point->url_total_seconds);
-        point->url_total_seconds = NULL;
-    }
-
     memset (point, 0, sizeof (op_stat_point));
 }
 
@@ -334,11 +276,7 @@ int op_stat_point_init (op_stat_point* point, size_t url_num)
     {
         if (!(point->url_ok = calloc (url_num, sizeof (unsigned long))) ||
             !(point->url_failed = calloc (url_num, sizeof (unsigned long))) ||
-            !(point->url_timeouted = calloc (url_num, sizeof (unsigned long))) ||
-            !(point->url_min = calloc (url_num, sizeof (unsigned long))) ||
-            !(point->url_max = calloc (url_num, sizeof (unsigned long))) ||
-            !(point->url_last = calloc (url_num, sizeof (unsigned long))) ||
-            !(point->url_total_seconds = calloc (url_num, sizeof (unsigned long)))
+            !(point->url_timeouted = calloc (url_num, sizeof (unsigned long)))
            )
         {
             goto allocation_failed;

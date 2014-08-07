@@ -137,7 +137,7 @@ void first_hdrs_clear_non_5xx (client_context* cctx)
 void stat_data_out_add (client_context* cctx, unsigned long bytes)
 {
     cctx->st.data_out += bytes;
-
+    cctx->bctx->url_stats[cctx->url_curr_index].data_out += bytes;
     cctx->is_https ? (cctx->bctx->https_delta.data_out += bytes) :
       (cctx->bctx->http_delta.data_out += bytes);
 }
@@ -145,7 +145,7 @@ void stat_data_out_add (client_context* cctx, unsigned long bytes)
 void stat_data_in_add (client_context* cctx, unsigned long bytes)
 {
     cctx->st.data_in += bytes;
-
+    cctx->bctx->url_stats[cctx->url_curr_index].data_in += bytes;
     cctx->is_https ? (cctx->bctx->https_delta.data_in += bytes) :
       (cctx->bctx->http_delta.data_in += bytes);
 }
@@ -153,6 +153,7 @@ void stat_data_in_add (client_context* cctx, unsigned long bytes)
 void stat_err_inc (client_context* cctx)
 {
     cctx->st.other_errs++;
+    cctx->bctx->url_stats[cctx->url_curr_index].other_errs++;
     cctx->is_https ? cctx->bctx->https_delta.other_errs++ :
       cctx->bctx->http_delta.other_errs++;
 }
@@ -160,6 +161,7 @@ void stat_err_inc (client_context* cctx)
 void stat_url_timeout_err_inc (client_context* cctx)
 {
     cctx->st.url_timeout_errs++;
+    cctx->bctx->url_stats[cctx->url_curr_index].url_timeout_errs++;
     cctx->is_https ? cctx->bctx->https_delta.url_timeout_errs++ :
       cctx->bctx->http_delta.url_timeout_errs++;
 }
@@ -167,6 +169,7 @@ void stat_url_timeout_err_inc (client_context* cctx)
 void stat_req_inc (client_context* cctx)
 {
     cctx->st.requests++;
+    cctx->bctx->url_stats[cctx->url_curr_index].requests++;
     cctx->is_https ? cctx->bctx->https_delta.requests++ :
       cctx->bctx->http_delta.requests++;
 }
@@ -174,6 +177,7 @@ void stat_req_inc (client_context* cctx)
 void stat_1xx_inc (client_context* cctx)
 {
     cctx->st.resp_1xx++;
+    cctx->bctx->url_stats[cctx->url_curr_index].resp_1xx++;
     cctx->is_https ? cctx->bctx->https_delta.resp_1xx++ :
       cctx->bctx->http_delta.resp_1xx++;
 }
@@ -189,6 +193,7 @@ void stat_2xx_inc (client_context* cctx)
 void stat_3xx_inc (client_context* cctx)
 {
     cctx->st.resp_3xx++;
+    cctx->bctx->url_stats[cctx->url_curr_index].resp_3xx++;
     cctx->is_https ? cctx->bctx->https_delta.resp_3xx++ :
       cctx->bctx->http_delta.resp_3xx++;
 }
@@ -196,6 +201,7 @@ void stat_3xx_inc (client_context* cctx)
 void stat_4xx_inc (client_context* cctx)
 {
     cctx->st.resp_4xx++;
+    cctx->bctx->url_stats[cctx->url_curr_index].resp_4xx++;
     cctx->is_https ? cctx->bctx->https_delta.resp_4xx++ :
       cctx->bctx->http_delta.resp_4xx++;
 }
@@ -203,6 +209,7 @@ void stat_4xx_inc (client_context* cctx)
 void stat_5xx_inc (client_context* cctx)
 {
     cctx->st.resp_5xx++;
+    cctx->bctx->url_stats[cctx->url_curr_index].resp_5xx++;
     cctx->is_https ? cctx->bctx->https_delta.resp_5xx++ :
       cctx->bctx->http_delta.resp_5xx++;
 }
@@ -211,17 +218,35 @@ void stat_appl_delay_add (client_context* cctx, unsigned long resp_timestamp)
 {
     if (resp_timestamp > cctx->req_sent_timestamp)
     {
+        unsigned long req_duration = (resp_timestamp - cctx->req_sent_timestamp);
+
+        cctx->bctx->url_stats[cctx->url_curr_index].appl_delay =
+            (cctx->bctx->url_stats[cctx->url_curr_index].appl_delay * cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_points +
+            req_duration) / ++cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_points;
+
+        unsigned long current_min = cctx->bctx->url_stats[cctx->url_curr_index].min_resp;
+        if (req_duration < current_min || current_min == 0) {
+            cctx->bctx->url_stats[cctx->url_curr_index].min_resp = req_duration;
+        }
+
+        unsigned long current_max = cctx->bctx->url_stats[cctx->url_curr_index].max_resp;
+        if (req_duration > current_max || current_max == 0) {
+            cctx->bctx->url_stats[cctx->url_curr_index].max_resp = req_duration;
+        }
+
+        cctx->bctx->url_stats[cctx->url_curr_index].last_resp = req_duration;
+
         if (cctx->is_https)
         {
             cctx->bctx->https_delta.appl_delay =
               (cctx->bctx->https_delta.appl_delay * cctx->bctx->https_delta.appl_delay_points +
-               resp_timestamp - cctx->req_sent_timestamp) / ++cctx->bctx->https_delta.appl_delay_points;
+               req_duration) / ++cctx->bctx->https_delta.appl_delay_points;
         }
         else
         {
             cctx->bctx->http_delta.appl_delay =
               (cctx->bctx->http_delta.appl_delay * cctx->bctx->http_delta.appl_delay_points +
-               resp_timestamp - cctx->req_sent_timestamp) / ++cctx->bctx->http_delta.appl_delay_points;
+               req_duration) / ++cctx->bctx->http_delta.appl_delay_points;
         }
     }
 }
@@ -230,44 +255,36 @@ void stat_appl_delay_2xx_add (client_context* cctx, unsigned long resp_timestamp
 {
     if (resp_timestamp > cctx->req_sent_timestamp)
     {
+        unsigned long req_duration = (resp_timestamp - cctx->req_sent_timestamp);
+
+        cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx =
+          (cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx * cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx +
+           req_duration) / ++cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx;
+
+        unsigned long current_min = cctx->bctx->url_stats[cctx->url_curr_index].min_resp_2xx;
+        if (req_duration < current_min || current_min == 0) {
+            cctx->bctx->url_stats[cctx->url_curr_index].min_resp_2xx = req_duration;
+        }
+
+        unsigned long current_max = cctx->bctx->url_stats[cctx->url_curr_index].max_resp_2xx;
+        if (req_duration > current_max || current_max == 0) {
+            cctx->bctx->url_stats[cctx->url_curr_index].max_resp_2xx = req_duration;
+        }
+
+        cctx->bctx->url_stats[cctx->url_curr_index].last_resp = req_duration;
+
         if (cctx->is_https)
         {
             cctx->bctx->https_delta.appl_delay_2xx =
               (cctx->bctx->https_delta.appl_delay_2xx * cctx->bctx->https_delta.appl_delay_2xx_points +
-               resp_timestamp - cctx->req_sent_timestamp) / ++cctx->bctx->https_delta.appl_delay_2xx_points;
+               req_duration) / ++cctx->bctx->https_delta.appl_delay_2xx_points;
         }
         else
         {
             cctx->bctx->http_delta.appl_delay_2xx =
               (cctx->bctx->http_delta.appl_delay_2xx * cctx->bctx->http_delta.appl_delay_2xx_points +
-               resp_timestamp - cctx->req_sent_timestamp) / ++cctx->bctx->http_delta.appl_delay_2xx_points;
+               req_duration) / ++cctx->bctx->http_delta.appl_delay_2xx_points;
         }
-    }
-
-    stat_appl_url_times(cctx, resp_timestamp);
-}
-
-void stat_appl_url_times (client_context* cctx, unsigned long resp_timestamp)
-{
-    if (resp_timestamp > cctx->req_sent_timestamp)
-    {
-       size_t url_curr_index = cctx->url_curr_index;
-       unsigned long req_duration = (resp_timestamp - cctx->req_sent_timestamp);
-       batch_context* bctx = cctx->bctx;
-       op_stat_point* op_total = &bctx->op_total;
-
-       unsigned long current_min = op_total->url_min[url_curr_index];
-       if (req_duration < current_min || current_min == 0) {
-         op_total->url_min[url_curr_index] = req_duration;
-       }
-
-       unsigned long current_max = op_total->url_max[url_curr_index];
-       if (req_duration > current_max || current_min == 0) {
-         op_total->url_max[url_curr_index] = req_duration;
-       }
-
-       op_total->url_total_seconds[url_curr_index] += req_duration;
-       op_total->url_last[url_curr_index] = req_duration;
     }
 }
 

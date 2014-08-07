@@ -765,20 +765,22 @@ static int batch_name_parser (batch_context*const bctx, char*const value)
     strncpy (bctx->batch_name, value, BATCH_NAME_SIZE);
     return 0;
 }
+
 static int clients_num_max_parser (batch_context*const bctx, char*const value)
 {
     bctx->client_num_max = 0;
     bctx->client_num_max = atoi (value);
 
-    /* fprintf (stderr, "\nclients number is %d\n", bctx->client_num_max); */
     if (bctx->client_num_max < 1)
     {
         fprintf (stderr, "%s - error: clients number (%d) is out of the range\n",
                  __func__, bctx->client_num_max);
         return -1;
     }
+
     return 0;
 }
+
 static int clients_num_start_parser (batch_context*const bctx, char*const value)
 {
     bctx->client_num_start = 0;
@@ -793,11 +795,13 @@ static int clients_num_start_parser (batch_context*const bctx, char*const value)
     }
     return 0;
 }
+
 static int interface_parser (batch_context*const bctx, char*const value)
 {
     strncpy (bctx->net_interface, value, sizeof (bctx->net_interface) -1);
     return 0;
 }
+
 static int netmask_parser (batch_context*const bctx, char*const value)
 {
     /* CIDR number of non-masked first bits -16, 24, etc */
@@ -822,6 +826,7 @@ static int netmask_parser (batch_context*const bctx, char*const value)
 
   return 0;
 }
+
 static int ip_addr_min_parser (batch_context*const bctx, char*const value)
 {
     struct in_addr inv4;
@@ -846,6 +851,7 @@ static int ip_addr_min_parser (batch_context*const bctx, char*const value)
 
     return 0;
 }
+
 static int ip_addr_max_parser (batch_context*const bctx, char*const value)
 {
   struct in_addr inv4;
@@ -870,6 +876,7 @@ static int ip_addr_max_parser (batch_context*const bctx, char*const value)
 
   return 0;
 }
+
 static int ip_shared_num_parser (batch_context*const bctx, char*const value)
 {
   bctx->ip_shared_num = atol (value);
@@ -908,17 +915,18 @@ static int run_time_parser (batch_context*const bctx, char*const value)
        token != 0; token = strtok_r(0,delim,&strtokp), ct++)
     {
         if (ct >= max_ct)
-	{
+        {
             (void)fprintf(stderr,
                 "%s - error: a value in the form [[[D:]H:]M:]S is expected"
                 " for tag RUN_TIME\n", __func__);
             return -1;
         }
-	int i = 0;
-	while (++i < max_ct)
+        int i = 0;
+        while (++i < max_ct)
            dhms[i - 1] = dhms[i];
         dhms[max_ct - 1] = atol(token);
     }
+
     long run_time = (60 * (60 * (24 * dhms[0] + dhms[1]) + dhms[2]) + dhms[3])*
        1000; // msecs
     if (run_time < 0)
@@ -941,6 +949,7 @@ static int clients_rampup_inc_parser (batch_context*const bctx, char*const value
     }
     return 0;
 }
+
 static int user_agent_parser (batch_context*const bctx, char*const value)
 {
     if (strlen (value) <= 0)
@@ -952,6 +961,7 @@ static int user_agent_parser (batch_context*const bctx, char*const value)
     strncpy (bctx->user_agent, value, sizeof(bctx->user_agent) - 1);
     return 0;
 }
+
 static int urls_num_parser (batch_context*const bctx, char*const value)
 {
     bctx->urls_num = atoi (value);
@@ -963,6 +973,7 @@ static int urls_num_parser (batch_context*const bctx, char*const value)
                  __func__, value);
         return -1;
     }
+
     /* Preparing the staff to load URLs and handles */
     if (! (bctx->url_ctx_array =
            (url_context *) cl_calloc (bctx->urls_num, sizeof (url_context))))
@@ -1949,25 +1960,29 @@ static int ftp_active_parser (batch_context*const bctx, char*const value)
 
 static int log_resp_headers_parser (batch_context*const bctx, char*const value)
 {
-  long status = atol (value);
-  if (status < 0 || status > 1)
+    long status = atol (value);
+    if (status < 0 || status > 1)
     {
-      fprintf(stderr, "%s error: ether 0 or 1 are allowed.\n", __func__);
-      return -1;
+        fprintf(stderr, "%s error: ether 0 or 1 are allowed.\n", __func__);
+        return -1;
     }
-  bctx->url_ctx_array[bctx->url_index].log_resp_headers = status;
-  return 0;
+
+    bctx->url_ctx_array[bctx->url_index].log_resp_headers = status;
+
+    return 0;
 }
+
 static int log_resp_bodies_parser (batch_context*const bctx, char*const value)
 {
-  long status = atol (value);
-  if (status < 0 || status > 1)
+    long status = atol (value);
+    if (status < 0 || status > 1)
     {
-      fprintf(stderr, "%s error: ether 0 or 1 are allowed.\n", __func__);
-      return -1;
+        fprintf(stderr, "%s error: ether 0 or 1 are allowed.\n", __func__);
+        return -1;
     }
-  bctx->url_ctx_array[bctx->url_index].log_resp_bodies = status;
-  return 0;
+    bctx->url_ctx_array[bctx->url_index].log_resp_bodies = status;
+
+    return 0;
 }
 
 static int response_status_errors_parser (batch_context*const bctx,
@@ -1979,11 +1994,11 @@ static int response_status_errors_parser (batch_context*const bctx,
   if (! (url->resp_status_errors_tbl =
          calloc (URL_RESPONSE_STATUS_ERRORS_TABLE_SIZE,
                  sizeof (unsigned char))))
-    {
-      fprintf (stderr, "%s - error: calloc () failed with errno %d.\n",
-              __func__, errno);
-      return -1;
-    }
+  {
+    fprintf (stderr, "%s - error: calloc () failed with errno %d.\n",
+            __func__, errno);
+    return -1;
+  }
 
   /* Copy the default table */
   memcpy (url->resp_status_errors_tbl,
@@ -2071,9 +2086,9 @@ static int fetch_probability_parser (batch_context*const bctx, char*const value)
 static int fetch_probability_once_parser (batch_context*const bctx,
                                           char*const value)
 {
-  long probability_once = atol (value);
+    long probability_once = atol (value);
 
-  if (probability_once != 0 && probability_once != 1)
+    if (probability_once != 0 && probability_once != 1)
     {
       fprintf (stderr,
               "%s error: tag FETCH_PROBABILITY_ONCE can be either 0 or 1.\n",
@@ -2081,9 +2096,10 @@ static int fetch_probability_once_parser (batch_context*const bctx,
       return -1;
     }
 
-  bctx->url_ctx_array[bctx->url_index].fetch_probability_once =
-    (int) probability_once;
-  return 0;
+    bctx->url_ctx_array[bctx->url_index].fetch_probability_once =
+      (int) probability_once;
+
+    return 0;
 }
 
 /******************************************************************************
@@ -2098,7 +2114,7 @@ static int fetch_probability_once_parser (batch_context*const bctx,
 static url_appl_type
 url_schema_classification (const char* const url)
 {
-  if (!url)
+    if (!url)
     {
       return  URL_APPL_UNDEF;
     }
@@ -2110,20 +2126,20 @@ url_schema_classification (const char* const url)
 #define SFTP_SCHEMA_STR "sftp://"
 #define TELNET_SCHEMA_STR "telnet://"
 
-  if (strstr (url, HTTPS_SCHEMA_STR))
-    return URL_APPL_HTTPS;
-  else if (strstr (url, HTTP_SCHEMA_STR))
-    return URL_APPL_HTTP;
-  else if (strstr (url, FTPS_SCHEMA_STR))
-    return URL_APPL_FTPS;
-  else if (strstr (url, FTP_SCHEMA_STR))
-    return URL_APPL_FTP;
-  else if (strstr (url, SFTP_SCHEMA_STR))
-    return URL_APPL_SFTP;
-  else if (strstr (url, TELNET_SCHEMA_STR))
-    return URL_APPL_TELNET;
+    if (strstr (url, HTTPS_SCHEMA_STR))
+      return URL_APPL_HTTPS;
+    else if (strstr (url, HTTP_SCHEMA_STR))
+      return URL_APPL_HTTP;
+    else if (strstr (url, FTPS_SCHEMA_STR))
+      return URL_APPL_FTPS;
+    else if (strstr (url, FTP_SCHEMA_STR))
+      return URL_APPL_FTP;
+    else if (strstr (url, SFTP_SCHEMA_STR))
+      return URL_APPL_SFTP;
+    else if (strstr (url, TELNET_SCHEMA_STR))
+      return URL_APPL_TELNET;
 
-  return  URL_APPL_UNDEF;
+    return  URL_APPL_UNDEF;
 }
 
 
@@ -2228,11 +2244,11 @@ static int validate_batch_general (batch_context*const bctx)
 
     if (! bctx->ipv6)
     {
-      if (bctx->ip_addr_min && (bctx->ip_addr_min == bctx->ip_addr_max))
+        if (bctx->ip_addr_min && (bctx->ip_addr_min == bctx->ip_addr_max))
         {
           bctx->ip_shared_num =1;
         }
-      else
+        else
         {
           if (!bctx->ip_shared_num &&
               ((bctx->ip_addr_max - bctx->ip_addr_min + 1) < bctx->client_num_max))
@@ -2245,12 +2261,12 @@ static int validate_batch_general (batch_context*const bctx)
     }
     else
     {
-      // IPv6
-      if (! memcmp (&bctx->ipv6_addr_min,
-                    &bctx->ipv6_addr_max,
-                    sizeof (bctx->ipv6_addr_min)))
+        // IPv6
+        if (! memcmp (&bctx->ipv6_addr_min,
+                      &bctx->ipv6_addr_max,
+                      sizeof (bctx->ipv6_addr_min)))
         {
-          bctx->ip_shared_num =1;
+            bctx->ip_shared_num =1;
         }
     }
 
@@ -2676,17 +2692,25 @@ int init_operational_statistics(batch_context* bctx)
   fprintf (stderr, "%s -  init of op_delta start.\n",__func__);
   if (op_stat_point_init(&bctx->op_delta,
                          bctx->urls_num) == -1)
-    {
+  {
       fprintf (stderr, "%s - error: init of op_delta failed.\n",__func__);
       return -1;
-    }
+  }
 
   if (op_stat_point_init(&bctx->op_total,
                          bctx->urls_num) == -1)
-    {
+  {
       fprintf (stderr, "%s - error: init of op_total failed.",__func__);
       return -1;
-    }
+  }
+
+  fprintf (stderr, "%s -  init of stat_point for urls start.\n",__func__);
+  if (url_stat_point_init(&bctx->url_stats,
+                         bctx->urls_num) == -1)
+  {
+      fprintf (stderr, "%s - error: init of stat_point for urls failed.\n",__func__);
+      return -1;
+  }
 
   return 0;
 }
@@ -2706,73 +2730,74 @@ static int post_validate_init (batch_context*const bctx)
     Allocate client contexts, if not allocated before.
   */
   if (!bctx->cctx_array)
-    {
+  {
       if (!(bctx->cctx_array =
             (client_context *) cl_calloc (bctx->client_num_max,
                                           sizeof (client_context))))
-        {
+      {
           fprintf (stderr, "\"%s\" - %s - failed to allocate cctx.\n",
                    bctx->batch_name, __func__);
           return -1;
-        }
+      }
+
       if (bctx->req_rate)
-        {
+      {
           /*
             Allocate list of free clients
           */
           if (!(bctx->free_clients =
             (int *) calloc (bctx->client_num_max, sizeof (int))))
-            {
+          {
               fprintf (stderr,
                 "\"%s\" - %s - failed to allocate free client list.\n",
                 bctx->batch_name, __func__);
               return -1;
-            }
-	        else
-            {
+          }
+          else
+          {
                /*
                  Initialize the list, all clients are free
                  Fill the list in reverse, last memeber is picked first
                */
                bctx->free_clients_count = bctx->client_num_max;
                int ix = bctx->free_clients_count, client_num = 1;
-	             while (ix-- > 0)
+               while (ix-- > 0)
                   bctx->free_clients[ix] = client_num++;
-            }
-        }
-    }
+          }
+      }
+  }
 
   if (create_response_logfiles_dirs (bctx) == -1)
-    {
+  {
       fprintf (stderr,
                "\"%s\" - create_response_logfiles_dirs () failed .\n",
                __func__);
       return -1;
-    }
+  }
 
   if (alloc_client_formed_buffers (bctx) == -1)
-    {
+  {
       fprintf (stderr,
                "\"%s\" - alloc_client_formed_buffers () failed .\n",
                __func__);
       return -1;
-    }
+  }
 
   if (alloc_client_fetch_decision_array (bctx) == -1)
-    {
+  {
       fprintf (stderr,
                "\"%s\" - alloc_client_fetch_decision_array () failed .\n",
                __func__);
       return -1;
-    }
+  }
 
   if (init_operational_statistics (bctx) == -1)
-    {
+  {
       fprintf (stderr,
                "\"%s\" - init_operational_statistics () failed .\n",
                __func__);
       return -1;
-    }
+  }
 
   /*
      It should be the last check.
@@ -2788,7 +2813,7 @@ static int post_validate_init (batch_context*const bctx)
   find_last_cycling_url (bctx);
 
   if (first_cycling_url < 0)
-    {
+  {
       fprintf (stderr, "The configuration has not cycling urls defined.\n"
                "Are you sure, that this is what you are planning to do?\n"
                "To make cycling you may wish to remove tag URL_DONT_CYCLE \n"
@@ -2796,7 +2821,7 @@ static int post_validate_init (batch_context*const bctx)
                " Please, press ENTER to continue or Cntl-C to stop.\n");
 
       getchar ();
-    }
+  }
 
   return 0;
 }

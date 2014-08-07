@@ -203,7 +203,7 @@ typedef struct url_context
        "user=%s&password=%s
 
        FORM_USAGETYPE_AS_IS - use the string provided AS IS;
-     */
+    */
     int form_usage_type;
 
     /*
@@ -366,6 +366,7 @@ typedef struct url_context
     */
     /* file descriptor for open upload file */
     int upload_descriptor;
+
     /* allocated, one for each client */
     off_t* upload_offsets;
 
@@ -396,7 +397,6 @@ typedef struct url_context
 
 } url_context;
 
-
 /* GF */
 #define is_template(url)	(url->template.string != 0)
 
@@ -404,6 +404,7 @@ int
 current_url_completion_timeout (unsigned long *timeout,
                                 url_context* url,
                                 unsigned long now);
+
 int
 current_url_sleeping_timeout (unsigned long *timeout,
                               url_context* url,

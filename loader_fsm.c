@@ -72,8 +72,11 @@ const load_state_func load_state_func_table [] =
 };
 
 static int pick_up_next_url (client_context* cctx);
+
 static int fetching_first_cycling_url (client_context* cctx);
+
 static void advance_cycle_num (client_context* cctx);
+
 static int setup_url (client_context* cctx);
 
 static int handle_screen_input_timer (timer_node* tn,
@@ -158,106 +161,106 @@ int alloc_init_timer_waiting_queue (size_t size, timer_queue** wq)
 int init_timers_and_add_initial_clients_to_load (batch_context* bctx,
                                                  unsigned long now_time)
 {
-  //client_context* cctx = bctx->cctx_array;
+    //client_context* cctx = bctx->cctx_array;
 
     /*
-     Init logfile rewinding timer and schedule it.
-  */
-  const unsigned long logfile_timer_msec  =
-    1000*LOGFILE_TEST_TIMER_PERIOD;
+       Init logfile rewinding timer and schedule it.
+    */
+    const unsigned long logfile_timer_msec  =
+      1000*LOGFILE_TEST_TIMER_PERIOD;
 
-  bctx->logfile_timer_node.next_timer = now_time + logfile_timer_msec;
-  bctx->logfile_timer_node.period = logfile_timer_msec;
-  bctx->logfile_timer_node.func_timer = handle_logfile_rewinding_timer;
+    bctx->logfile_timer_node.next_timer = now_time + logfile_timer_msec;
+    bctx->logfile_timer_node.period = logfile_timer_msec;
+    bctx->logfile_timer_node.func_timer = handle_logfile_rewinding_timer;
 
-  if (tq_schedule_timer (bctx->waiting_queue,
-  	                 &bctx->logfile_timer_node) == -1)
+    if (tq_schedule_timer (bctx->waiting_queue,
+                      &bctx->logfile_timer_node) == -1)
     {
-      fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n", __func__);
-      return -1;
+        fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n", __func__);
+        return -1;
     }
 #if 0
    else
     {
-     fprintf (cctx->file_output, "SCHED: %s - logfile_timer_id is %ld.\n",
-   __func__, logfile_timer_id);
+       fprintf (cctx->file_output, "SCHED: %s - logfile_timer_id is %ld.\n",
+          __func__, logfile_timer_id);
     }
 #endif
 
-  /*
-     Init screen input testing timer and schedule it.
-  */
-  bctx->screen_input_timer_node.next_timer = now_time + 3000;
-  bctx->screen_input_timer_node.period = 1000;
-  bctx->screen_input_timer_node.func_timer = handle_screen_input_timer;
+    /*
+       Init screen input testing timer and schedule it.
+    */
+    bctx->screen_input_timer_node.next_timer = now_time + 3000;
+    bctx->screen_input_timer_node.period = 1000;
+    bctx->screen_input_timer_node.func_timer = handle_screen_input_timer;
 
-  if (tq_schedule_timer (bctx->waiting_queue, &bctx->screen_input_timer_node)== -1)
+    if (tq_schedule_timer (bctx->waiting_queue, &bctx->screen_input_timer_node)== -1)
     {
-      fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n", __func__);
-      return -1;
+        fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n", __func__);
+        return -1;
     }
 #if 0
   else
     {
-     fprintf (cctx->file_output, "SCHED: %s - screen_input_timer_id is %ld.\n",
-              __func__, screen_input_timer_id);
+       fprintf (cctx->file_output, "SCHED: %s - screen_input_timer_id is %ld.\n",
+                __func__, screen_input_timer_id);
     }
 #endif
 
-  bctx->start_time = bctx->last_measure = now_time;
-  bctx->active_clients_count = bctx->sleeping_clients_count =0;
+    bctx->start_time = bctx->last_measure = now_time;
+    bctx->active_clients_count = bctx->sleeping_clients_count = 0;
 
-
-  if (add_loading_clients (bctx) == -1)
+    if (add_loading_clients (bctx) == -1)
     {
-      fprintf (stderr, "%s error: add_loading_clients () failed.\n", __func__);
-      return -1;
+        fprintf (stderr, "%s error: add_loading_clients () failed.\n", __func__);
+        return -1;
     }
 
-  if (bctx->do_client_num_gradual_increase)
+    if (bctx->do_client_num_gradual_increase)
     {
-      /*
-         Schedule the gradual loading clients increase timer.
-      */
+        /*
+           Schedule the gradual loading clients increase timer.
+        */
+        bctx->clients_num_inc_timer_node.next_timer = now_time + 1000;
+        bctx->clients_num_inc_timer_node.period = 1000;
+        bctx->clients_num_inc_timer_node.func_timer =
+          handle_gradual_increase_clients_num_timer;
 
-      bctx->clients_num_inc_timer_node.next_timer = now_time + 1000;
-      bctx->clients_num_inc_timer_node.period = 1000;
-      bctx->clients_num_inc_timer_node.func_timer =
-        handle_gradual_increase_clients_num_timer;
-
-      if (tq_schedule_timer (bctx->waiting_queue,
-                             &bctx->clients_num_inc_timer_node) == -1)
+        if (tq_schedule_timer (bctx->waiting_queue,
+                               &bctx->clients_num_inc_timer_node) == -1)
         {
-          fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n", __func__);
-          return -1;
+            fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n", __func__);
+            return -1;
         }
-#if 0
-      else
+    #if 0
+        else
         {
-         fprintf (cctx->file_output, "SCHED: %s - clients_num_inc_id is %ld.\n",
-                  __func__, clients_num_inc_id);
+           fprintf (cctx->file_output, "SCHED: %s - clients_num_inc_id is %ld.\n",
+                    __func__, clients_num_inc_id);
         }
-#endif
+    #endif
     }
 
-  if (bctx->req_rate)
+    if (bctx->req_rate)
     {
-      /*
-         Schedule fixied request rate timer.
-      */
-      bctx->req_rate_timer_node.next_timer = now_time + 1000;
-      bctx->req_rate_timer_node.period = 1000/req_rate_timer_invs_per_sec -
-        req_rate_timer_fudge;
-      bctx->req_rate_timer_node.func_timer = handle_req_rate_timer;
-      if (tq_schedule_timer (bctx->waiting_queue,
-                             &bctx->req_rate_timer_node) == -1)
+        /*
+           Schedule fixed request rate timer.
+        */
+        bctx->req_rate_timer_node.next_timer = now_time + 1000;
+        bctx->req_rate_timer_node.period = 1000/req_rate_timer_invs_per_sec -
+          req_rate_timer_fudge;
+        bctx->req_rate_timer_node.func_timer = handle_req_rate_timer;
+        if (tq_schedule_timer (bctx->waiting_queue,
+                               &bctx->req_rate_timer_node) == -1)
         {
-          fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n",
-            __func__);
-          return -1;
+            fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n",
+                __func__);
+
+            return -1;
         }
     }
-  return 0;
+
+    return 0;
 }
 
 /**************************************************************************
@@ -270,35 +273,35 @@ int init_timers_and_add_initial_clients_to_load (batch_context* bctx,
  ***************************************************************************/
 int cancel_periodic_timers (batch_context* bctx)
 {
-  if (bctx->logfile_timer_node.timer_id != -1)
+    if (bctx->logfile_timer_node.timer_id != -1)
     {
-      tq_cancel_timer (bctx->waiting_queue,
-                       bctx->logfile_timer_node.timer_id);
-      bctx->logfile_timer_node.timer_id = -1;
+        tq_cancel_timer (bctx->waiting_queue,
+                         bctx->logfile_timer_node.timer_id);
+        bctx->logfile_timer_node.timer_id = -1;
     }
 
-  if (bctx->clients_num_inc_timer_node.timer_id != -1)
+    if (bctx->clients_num_inc_timer_node.timer_id != -1)
     {
-      tq_cancel_timer (bctx->waiting_queue,
-                       bctx->clients_num_inc_timer_node.timer_id);
-      bctx->clients_num_inc_timer_node.timer_id = -1;
+        tq_cancel_timer (bctx->waiting_queue,
+                         bctx->clients_num_inc_timer_node.timer_id);
+        bctx->clients_num_inc_timer_node.timer_id = -1;
     }
 
-  if (bctx->screen_input_timer_node.timer_id != -1)
+    if (bctx->screen_input_timer_node.timer_id != -1)
     {
-      tq_cancel_timer (bctx->waiting_queue,
-                       bctx->screen_input_timer_node.timer_id);
-      bctx->screen_input_timer_node.timer_id = -1;
+        tq_cancel_timer (bctx->waiting_queue,
+                         bctx->screen_input_timer_node.timer_id);
+        bctx->screen_input_timer_node.timer_id = -1;
     }
 
-  if (bctx->req_rate_timer_node.timer_id != -1)
+    if (bctx->req_rate_timer_node.timer_id != -1)
     {
-      tq_cancel_timer (bctx->waiting_queue,
-                       bctx->req_rate_timer_node.timer_id);
-      bctx->req_rate_timer_node.timer_id = -1;
+        tq_cancel_timer (bctx->waiting_queue,
+                         bctx->req_rate_timer_node.timer_id);
+        bctx->req_rate_timer_node.timer_id = -1;
     }
 
-  return 0;
+    return 0;
 }
 
 /*****************************************************************************
@@ -319,163 +322,163 @@ int load_next_step (client_context* cctx,
                     unsigned long now_time,
                     int* sched_now)
 {
-  batch_context* bctx = cctx->bctx;
-  int rval_load = CSTATE_ERROR;
-  unsigned long interleave_waiting_time = 0;
+    batch_context* bctx = cctx->bctx;
+    int rval_load = CSTATE_ERROR;
+    unsigned long interleave_waiting_time = 0;
 
-  *sched_now = 0;
+    *sched_now = 0;
 
-  /*
-    Cancel the url completion timer, if it was scheduled.
-  */
-  if (cctx->tid_url_completion != -1)
+    /*
+      Cancel the url completion timer, if it was scheduled.
+    */
+    if (cctx->tid_url_completion != -1)
     {
 #if 0
-      if (cctx->tid_url_completion ==  clients_num_inc_id)
-      {
-          fprintf (cctx->file_output,
-                   "SCHED: %s - cctx->tid_url_completion ==  clients_num_inc_id.\n",
-                   __func__);
-      }
+        if (cctx->tid_url_completion ==  clients_num_inc_id)
+        {
+            fprintf (cctx->file_output,
+                     "SCHED: %s - cctx->tid_url_completion ==  clients_num_inc_id.\n",
+                     __func__);
+        }
 #endif
-      tq_cancel_timer (bctx->waiting_queue, cctx->tid_url_completion);
+        tq_cancel_timer (bctx->waiting_queue, cctx->tid_url_completion);
 
-      cctx->tid_url_completion = -1;
+        cctx->tid_url_completion = -1;
     }
 
-  /* Remove handle from the multiple handle, if it was added there before. */
-  if (cctx->client_state != CSTATE_INIT)
+    /* Remove handle from the multiple handle, if it was added there before. */
+    if (cctx->client_state != CSTATE_INIT)
     {
-      if (client_remove_from_load (bctx, cctx) == -1)
+        if (client_remove_from_load (bctx, cctx) == -1)
         {
-          fprintf (stderr, "%s - client_remove_from_load () failed.\n", __func__);
-          return -1;
+            fprintf (stderr, "%s - client_remove_from_load () failed.\n", __func__);
+            return -1;
         }
     }
 
-  /*
-     When load_error_state () gets client (in CSTATE_ERROR) and
-     <recoverable_error_state> is true (the default), it recovers the
-     client and sets the first cycling state to it. However, operational
-     statistics should record it as a failed operation in op_stat_update.
-     Therefore, remembering here possible error state.
-  */
-  int recoverable_error_state = cctx->client_state;
-  if (bctx->run_time && (now_time - bctx->start_time >= bctx->run_time))
+    /*
+       When load_error_state () gets client (in CSTATE_ERROR) and
+       <recoverable_error_state> is true (the default), it recovers the
+       client and sets the first cycling state to it. However, operational
+       statistics should record it as a failed operation in op_stat_update.
+       Therefore, remembering here possible error state.
+    */
+    int recoverable_error_state = cctx->client_state;
+    if (bctx->run_time && (now_time - bctx->start_time >= bctx->run_time))
     {
-      rval_load = CSTATE_FINISHED_OK;
-      bctx->requests_completed = 1;
+        rval_load = CSTATE_FINISHED_OK;
+        bctx->requests_completed = 1;
     }
-  else
-  /*
-     Initialize virtual client's CURL handle for the next step of loading by calling
-     load_<state-name>_state() function relevant for a particular client state.
-  */
-      rval_load = load_state_func_table[cctx->client_state+1] (cctx,
-                                                   now_time,
-                                                   &interleave_waiting_time);
-
-  /*
-     Update operational statistics
-  */
-  op_stat_update (&bctx->op_delta,
-                  (recoverable_error_state == CSTATE_ERROR) ?
-		  	recoverable_error_state : rval_load,
-                  cctx->preload_state,
-                  cctx->url_curr_index,
-                  cctx->preload_url_curr_index);
-
-  if (fetching_first_cycling_url (cctx))
+    else
     {
-      /* Update CAPS numbers */
-      op_stat_call_init_count_inc (&bctx->op_delta);
+        /*
+           Initialize virtual client's CURL handle for the next step of loading by calling
+           load_<state-name>_state() function relevant for a particular client state.
+        */
+        rval_load = load_state_func_table[cctx->client_state+1] (cctx,
+                                           now_time,
+                                           &interleave_waiting_time);
     }
 
-  /*
-    Coming to the error or the finished states, just return without more
-    scheduling the client any more.
-  */
-  if (rval_load == CSTATE_ERROR || rval_load == CSTATE_FINISHED_OK)
-  {
-      /*
-        GF
-        At this point this client is finished, and there are no more URLs to fetch.
-        But the client may still be holding a connection open, which may prevent other
-        clients in the batch from connecting to the server. If we wait until the end-of-batch
-        general cleanup to close connections, then these other clients may never connect, and
-        the only way the batch will end is to have all these waiting clients time out. So we
-        should close out this client's connections here. Setting client->handle = 0 will prevent
-        curl_easy_cleanup from being called again in the general cleanup.
-      */
-      // cleanup of each handle is a hint to multi-handle to
-      // decrease the num of connections to server
-      if (cctx->handle)
-      {
-          curl_easy_cleanup (cctx->handle);
-          cctx->handle = 0;
-      }
+    /*
+       Update operational statistics
+    */
+    op_stat_update (&bctx->op_delta,
+                    (recoverable_error_state == CSTATE_ERROR) ?
+                    recoverable_error_state : rval_load,
+                    cctx->preload_state,
+                    cctx->url_curr_index,
+                    cctx->preload_url_curr_index);
 
-      if (rval_load == CSTATE_ERROR)
-      {
-          // Re-init clients in CSTATE_ERROR state to enable their optional
-          // scheduling
-          cctx->handle = curl_easy_init ();
-      }
-      return rval_load;
-  }
-
-  /*
-     Schedule virtual clients by adding them to multi-handle,
-     if the clients are not in error or finished final states.
-  */
-  if (!interleave_waiting_time)
+    if (fetching_first_cycling_url (cctx))
     {
-      /* Schedule the client immediately */
-      if (client_add_to_load (bctx, cctx, now_time) == -1)
+        /* Update CAPS numbers */
+        op_stat_call_init_count_inc (&bctx->op_delta);
+    }
+
+    /*
+      Coming to the error or the finished states, just return without more
+      scheduling the client any more.
+    */
+    if (rval_load == CSTATE_ERROR || rval_load == CSTATE_FINISHED_OK)
+    {
+        /*
+          GF
+          At this point this client is finished, and there are no more URLs to fetch.
+          But the client may still be holding a connection open, which may prevent other
+          clients in the batch from connecting to the server. If we wait until the end-of-batch
+          general cleanup to close connections, then these other clients may never connect, and
+          the only way the batch will end is to have all these waiting clients time out. So we
+          should close out this client's connections here. Setting client->handle = 0 will prevent
+          curl_easy_cleanup from being called again in the general cleanup.
+        */
+        // cleanup of each handle is a hint to multi-handle to
+        // decrease the num of connections to server
+        if (cctx->handle)
         {
-          fprintf (stderr, "%s - error: client_add_to_load () failed .\n",
-	  __func__);
-          return -1;
+            curl_easy_cleanup (cctx->handle);
+            cctx->handle = 0;
         }
-      else
+
+        if (rval_load == CSTATE_ERROR)
+        {
+            // Re-init clients in CSTATE_ERROR state to enable their optional
+            // scheduling
+            cctx->handle = curl_easy_init ();
+        }
+
+        return rval_load;
+    }
+
+    /*
+       Schedule virtual clients by adding them to multi-handle,
+       if the clients are not in error or finished final states.
+    */
+    if (!interleave_waiting_time)
+    {
+        /* Schedule the client immediately */
+        if (client_add_to_load (bctx, cctx, now_time) == -1)
+        {
+            fprintf (stderr, "%s - error: client_add_to_load () failed .\n",
+                      __func__);
+            return -1;
+        }
+        else
         {
             *sched_now = 1;
         }
     }
-  else
+    else
     {
-        //PRINTF("load_next_step: ctx %p schedule next load in %d seconds\n",
-        //     cctx,(int) interleave_waiting_time/1000);
+        /*
+           Postpone client scheduling for the interleave_waiting_time msec by
+           placing it to the timer queue. Schedule the timer now.
+        */
+        cctx->tn.next_timer = now_time + interleave_waiting_time;
+        cctx->tn.period = 0;
+        cctx->tn.func_timer = handle_cctx_sleeping_timer;
 
-      /*
-         Postpone client scheduling for the interleave_waiting_time msec by
-         placing it to the timer queue. Schedule the timer now.
-      */
-      cctx->tn.next_timer = now_time + interleave_waiting_time;
-      cctx->tn.period = 0;
-      cctx->tn.func_timer = handle_cctx_sleeping_timer;
-
-      if ((cctx->tid_sleeping = tq_schedule_timer (bctx->waiting_queue,
-                                             (struct timer_node *) cctx)) == -1)
+        if ((cctx->tid_sleeping = tq_schedule_timer (bctx->waiting_queue,
+                                               (struct timer_node *) cctx)) == -1)
         {
-          fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n", __func__);
-          return -1;
+            fprintf (stderr, "%s - error: tq_schedule_timer () failed.\n", __func__);
+            return -1;
         }
-      else
+        else
         {
 #if 0
-          fprintf (cctx->file_output, "SCHED: %s - cctx->tid_sleeping is %ld.\n",
+            fprintf (cctx->file_output, "SCHED: %s - cctx->tid_sleeping is %ld.\n",
                    __func__, cctx->tid_sleeping);
 #endif
-           bctx->sleeping_clients_count++;
+            bctx->sleeping_clients_count++;
         }
 #if 0
-      fprintf (stderr, "%s - scheduled client to wq with wtime %ld\n",
-       __func__, interleave_waiting_time);
+          fprintf (stderr, "%s - scheduled client to wq with wtime %ld\n",
+          __func__, interleave_waiting_time);
 #endif
     }
 
-  return rval_load;
+    return rval_load;
 }
 
 /******************************************************************************
@@ -523,19 +526,18 @@ int add_loading_clients (batch_context* bctx)
 
   /* Calculate number of the new clients to schedule. */
   if (!bctx->clients_current_sched_num && bctx->client_num_start)
-    {
+  {
       /* first time scheduling - zero bctx->clients_current_sched_num */
       clients_to_sched = bctx->client_num_start;
-    }
+  }
   else
-    {
+  {
       clients_to_sched = bctx->clients_rampup_inc ?
         min (bctx->clients_rampup_inc, bctx->client_num_max -
              bctx->clients_current_sched_num) : bctx->client_num_max;
-    }
+  }
 
 
-  //fprintf (stderr, "%s - adding %ld clients.\n", __func__, clients_to_sched);
 #if 0
   fprintf (cctx->file_output,
            "SCHED: clients_to_sched %ld, bctx->clients_current_sched_num %d.\n",
@@ -547,10 +549,10 @@ int add_loading_clients (batch_context* bctx)
      Defer activation to timer if fixed request rate is specified.
   */
   if (!bctx->req_rate)
-    {
-      if (orderly_sched_clients (bctx, clients_to_sched) < 0)
-          return -1;
-    }
+  {
+    if (orderly_sched_clients (bctx, clients_to_sched) < 0)
+        return -1;
+  }
 
   /*
      Re-calculate assisting counters and enable do_client_num_gradual_increase
@@ -560,12 +562,12 @@ int add_loading_clients (batch_context* bctx)
   bctx->clients_current_sched_num += clients_to_sched;
 
   if (bctx->clients_rampup_inc)
-    {
-      if (bctx->clients_current_sched_num < bctx->client_num_max)
-        {
-          bctx->do_client_num_gradual_increase = 1;
-        }
-    }
+  {
+    if (bctx->clients_current_sched_num < bctx->client_num_max)
+      {
+        bctx->do_client_num_gradual_increase = 1;
+      }
+  }
 
   return 0;
 }
@@ -823,19 +825,19 @@ static int handle_logfile_rewinding_timer (timer_node* timer_node,
                                            void* pvoid_param,
                                            unsigned long ulong_param)
 {
-  batch_context* bctx = (batch_context *) pvoid_param;
-  (void) timer_node;
-  (void) ulong_param;
+    batch_context* bctx = (batch_context *) pvoid_param;
+    (void) timer_node;
+    (void) ulong_param;
 
-  if (rewind_logfile_above_maxsize (bctx->cctx_array->file_output) == -1)
-    {
-      fprintf (stderr, "%s - rewind_logfile_above_maxsize() failed .\n",
-      	__func__);
-      return -1;
-    }
+    if (rewind_logfile_above_maxsize (bctx->cctx_array->file_output) == -1)
+      {
+        fprintf (stderr, "%s - rewind_logfile_above_maxsize() failed .\n",
+        	__func__);
+        return -1;
+      }
 
-  //fprintf (stderr, "%s - runs.\n", __func__);
-  return 0;
+    //fprintf (stderr, "%s - runs.\n", __func__);
+    return 0;
 }
 
 /******************************************************************************
@@ -853,14 +855,13 @@ static int handle_screen_input_timer (timer_node* timer_node,
                                       void* pvoid_param,
                                       unsigned long ulong_param)
 {
-  batch_context* bctx = (batch_context *) pvoid_param;
-  (void) timer_node;
-  (void) ulong_param;
+    batch_context* bctx = (batch_context *) pvoid_param;
+    (void) timer_node;
+    (void) ulong_param;
 
-  screen_test_keyboard_input (bctx);
+    screen_test_keyboard_input (bctx);
 
-  //fprintf (stderr, "%s - runs.\n", __func__);
-  return 0;
+    return 0;
 }
 
 /*************************************************************************
@@ -879,16 +880,16 @@ int handle_cctx_sleeping_timer (timer_node* tn,
                                 void* pvoid_param,
                                 unsigned long ulong_param)
 {
-  (void)pvoid_param;
-  (void)ulong_param;
+    (void)pvoid_param;
+    (void)ulong_param;
 
-  client_context* cctx = (client_context *) tn;
-  batch_context* bctx = cctx->bctx;
-  url_context* url = &bctx->url_ctx_array[cctx->url_curr_index];
+    client_context* cctx = (client_context *) tn;
+    batch_context* bctx = cctx->bctx;
+    url_context* url = &bctx->url_ctx_array[cctx->url_curr_index];
 
-  bctx->sleeping_clients_count--;
+    bctx->sleeping_clients_count--;
 
-  if (url->fresh_connect)
+    if (url->fresh_connect)
     {
       /*
         On a fresh connect we reset the connection and go to sleep.
@@ -900,9 +901,9 @@ int handle_cctx_sleeping_timer (timer_node* tn,
       setup_url (cctx);
     }
 
-  const unsigned long now_time = get_tick_count ();
+    const unsigned long now_time = get_tick_count ();
 
-  return client_add_to_load (bctx, cctx, now_time);
+    return client_add_to_load (bctx, cctx, now_time);
 }
 
 /*****************************************************************************
@@ -916,23 +917,25 @@ int handle_cctx_sleeping_timer (timer_node* tn,
  ******************************************************************************/
 int put_free_client (client_context* cctx)
 {
-  batch_context *bctx = cctx->bctx;
-  if (bctx->free_clients_count >= bctx->client_num_max)
+    batch_context *bctx = cctx->bctx;
+    if (bctx->free_clients_count >= bctx->client_num_max)
     /* Debugging, should not happen :-) */
     {
       fprintf (stderr,"%s - error: no room in free client client list.\n",
         __func__);
       return -1;
     }
-  int free_client_no = cctx - bctx->cctx_array + 1;
-  if (free_client_no < 0 || free_client_no > bctx->client_num_max)
+
+    int free_client_no = cctx - bctx->cctx_array + 1;
+    if (free_client_no < 0 || free_client_no > bctx->client_num_max)
     /* Debugging, should not happen :-) */
     {
       fprintf (stderr,"%s - error: invalid free client number %d.\n",
         __func__, free_client_no);
       return -1;
     }
-  if (bctx->free_clients[bctx->free_clients_count])
+
+    if (bctx->free_clients[bctx->free_clients_count])
     /* Debugging, should not happen :-) */
     {
       fprintf (stderr,
@@ -941,8 +944,8 @@ int put_free_client (client_context* cctx)
       return -1;
     }
 
-  bctx->free_clients[bctx->free_clients_count++] = free_client_no;
-  return 0;
+    bctx->free_clients[bctx->free_clients_count++] = free_client_no;
+    return 0;
 }
 
 /*************************************************************************
@@ -961,24 +964,24 @@ static int handle_cctx_url_completion_timer (timer_node* tn,
                                              void* pvoid_param,
                                              unsigned long ulong_param)
 {
-  client_context* cctx = (client_context *) tn;
-  batch_context* bctx = cctx->bctx;
-  (void)pvoid_param;
-  (void)ulong_param;
-  int sched_now;
+    client_context* cctx = (client_context *) tn;
+    batch_context* bctx = cctx->bctx;
+    (void)pvoid_param;
+    (void)ulong_param;
+    int sched_now;
 
-  cctx->tid_url_completion = -1;
+    cctx->tid_url_completion = -1;
 
-  // Increment operational statistics
-  op_stat_timeouted (&bctx->op_delta, cctx->url_curr_index);
+    // Increment operational statistics
+    op_stat_timeouted (&bctx->op_delta, cctx->url_curr_index);
 
-  // Considering url completion timeout as an error
-  // TODO - make it configurable
-  stat_url_timeout_err_inc (cctx);
-  cctx->client_state = CSTATE_ERROR;
+    // Considering url completion timeout as an error
+    // TODO - make it configurable
+    stat_url_timeout_err_inc (cctx);
+    cctx->client_state = CSTATE_ERROR;
 
-  const unsigned long now_time = get_tick_count ();
-  if (verbose_logging)
+    const unsigned long now_time = get_tick_count ();
+    if (verbose_logging)
     {
       fprintf (cctx->file_output,
                "%ld %ld %ld %s !! ERUT url completion timeout: url: %s\n",
@@ -988,12 +991,12 @@ static int handle_cctx_url_completion_timer (timer_node* tn,
     }
 
 
-  /*
-    If fixed request rate is specified, free the client, the next step
-    is loaded on the request rate timer.
-  */
-  return (bctx->req_rate) ? put_free_client(cctx) :
-    load_next_step(cctx, now_time, &sched_now);
+    /*
+      If fixed request rate is specified, free the client, the next step
+      is loaded on the request rate timer.
+    */
+    return (bctx->req_rate) ? put_free_client(cctx) :
+      load_next_step(cctx, now_time, &sched_now);
 }
 
 /*************************************************************************
@@ -1011,12 +1014,12 @@ static int handle_req_rate_timer (timer_node* tn,
                                   void* pvoid_param,
                                   unsigned long ulong_param)
 {
-  batch_context* bctx = (batch_context *) pvoid_param;
-  (void) tn;
-  (void) ulong_param;
+    batch_context* bctx = (batch_context *) pvoid_param;
+    (void) tn;
+    (void) ulong_param;
 
-  (void)req_rate_sched_clients(bctx);
-  return 0;
+    (void)req_rate_sched_clients(bctx);
+    return 0;
 }
 
 /****************************************************************************************
@@ -1030,18 +1033,20 @@ static int handle_req_rate_timer (timer_node* tn,
  ****************************************************************************************/
 int pending_active_and_waiting_clients_num (batch_context* bctx)
 {
-  if (bctx->req_rate && (bctx->cycling_completed || bctx->requests_completed))
-    return 0;
-  int total = bctx->waiting_queue ?
-    (bctx->active_clients_count + bctx->sleeping_clients_count) :
-    bctx->active_clients_count;
-  /*
-   If no clients are active, prevent loader exit in case fixed request rate
-   is specified, and clients are scheduled, ie. the request rate timer did
-   not run yet.
-  */
-  return total ? total : (int)(
-    bctx->req_rate && bctx->clients_current_sched_num);
+    if (bctx->req_rate && (bctx->cycling_completed || bctx->requests_completed))
+        return 0;
+
+    int total = bctx->waiting_queue ?
+      (bctx->active_clients_count + bctx->sleeping_clients_count) :
+      bctx->active_clients_count;
+
+    /*
+     If no clients are active, prevent loader exit in case fixed request rate
+     is specified, and clients are scheduled, ie. the request rate timer did
+     not run yet.
+    */
+    return total ? total : (int)(
+      bctx->req_rate && bctx->clients_current_sched_num);
 }
 
 /****************************************************************************************
@@ -1230,39 +1235,41 @@ static int pick_up_next_url (client_context* cctx)
   const int lc_url = bctx->last_cycling_url;
 
   if (! bctx->cycling_completed && ((int)cctx->url_curr_index < lc_url))
-    {
+  {
       return ++cctx->url_curr_index;
-    }
+  }
 
   /*
     At the last cycling url.
   */
   if (! bctx->cycling_completed && cctx->url_curr_index == (size_t)lc_url)
-    {
+  {
       // Finished with all the urls for a single cycle
       //
       advance_cycle_num (cctx);
 
       if (bctx->cycles_num && cctx->cycle_num == bctx->cycles_num)
+      {
+
+        // Cycling completed
+        bctx->cycling_completed = 1;
+
+        // If there are non-cycling urls to fetch - continue
+        if (cctx->url_curr_index == (size_t)(bctx->urls_num - 1))
         {
-
-          // Cycling completed
-          bctx->cycling_completed = 1;
-
-          // If there are non-cycling urls to fetch - continue
-          if (cctx->url_curr_index == (size_t)(bctx->urls_num - 1))
-            {
-              return -1; // finita la-comedia
-            }
-          // take the next url
-          return ++cctx->url_curr_index;
+            return -1; // finita la-comedia
         }
+
+        // take the next url
+        return ++cctx->url_curr_index;
+      }
       else
-        {
-          // If there are more cycles to do continue cycling
-          return cctx->url_curr_index = fc_url;
-        }
-    }
+      {
+        // If there are more cycles to do continue cycling
+        return cctx->url_curr_index = fc_url;
+      }
+  }
+
   return -1;
 }
 
@@ -1329,18 +1336,18 @@ static int load_urls_state (client_context* cctx,
   int url_next = -1;
 
   if (cctx->client_state == CSTATE_URLS)
-    {
+  {
       // Mind the after url sleeping timeout, if any.
       //
       if (current_url_sleeping_timeout (wait_msec,
                                           url,
                                           now_time) == -1)
-        {
+      {
           fprintf (stderr,
                    "%s - error: current_url_completion_timeout () failed.\n",
                    __func__);
           return -1;
-        }
+      }
 
       // Now, pick-up the next url index
       do
@@ -1357,28 +1364,28 @@ static int load_urls_state (client_context* cctx,
       while (fetching_decision (cctx, url) != 1);
 
       if (url->fresh_connect && *wait_msec)
-        {
+      {
           /*
             On a fresh connect reset the connection and go to sleep.
             Postpone the call to setup_url (cctx) and make it in the
             timer handler.
           */
           curl_easy_reset (handle);
-        }
+      }
       else
-        {
+      {
           // Setup the new url.
           setup_url (cctx);
-        }
+      }
 
       // Remain in URL state
       return cctx->client_state;
-    }
+  }
   else
-    {
+  {
       // Coming from any other states, start from the first url.
       cctx->url_curr_index = 0;
-    }
+  }
 
   // Non-URL states are all falling below
   return setup_url (cctx);
@@ -1388,9 +1395,9 @@ static int load_final_ok_state (client_context* cctx,
                                 unsigned long now_time,
                                 unsigned long *wait_msec)
 {
-  (void) cctx; (void) wait_msec; (void) now_time;
+    (void) cctx; (void) wait_msec; (void) now_time;
 
-  return CSTATE_FINISHED_OK;
+    return CSTATE_FINISHED_OK;
 }
 
 /*****************************************************************************
@@ -1406,14 +1413,14 @@ static int load_final_ok_state (client_context* cctx,
 static int orderly_sched_clients (batch_context* bctx,
                                   int clients_to_sched)
 {
-  int scheduled_now = 0;
-  unsigned long now_time = get_tick_count ();
-  long j;
+    int scheduled_now = 0;
+    unsigned long now_time = get_tick_count ();
+    long j;
 
-  for (j = bctx->clients_current_sched_num;
-       j < bctx->clients_current_sched_num + clients_to_sched;
-       j++)
-	  {
+    for (j = bctx->clients_current_sched_num;
+         j < bctx->clients_current_sched_num + clients_to_sched;
+         j++)
+    {
       /*
        Runs load_init_state () for each newly added client.
        */
@@ -1422,15 +1429,16 @@ static int orderly_sched_clients (batch_context* bctx,
         {
           fprintf(stderr,
             "%s error: load_next_step() initial failed\n", __func__);
-#if 0
+  #if 0
           fprintf (cctx->file_output,
                    "SCHED: %s - load_next_step failed.\n",
                    __func__);
-#endif
+  #endif
            return -1;
          }
-     }
-  return 0;
+    }
+
+    return 0;
 }
 
 /*****************************************************************************
@@ -1444,45 +1452,45 @@ static int orderly_sched_clients (batch_context* bctx,
  ******************************************************************************/
 static int req_rate_sched_clients (batch_context* bctx)
 {
-  int scheduled_now = 0;
-  unsigned long now_time = get_tick_count ();
-  int j;
+    int scheduled_now = 0;
+    unsigned long now_time = get_tick_count ();
+    int j;
 
-  /*
-    Figure out how many clients of the total (R) to schedule on a particular
-    invocation (N) of the request rate timer.  Schedule the same number
-    (R/N) of clients on every invocation and distribute the remainder (R%N)
-    between the first (R%N) invocations.
-  */
-  int clients_to_sched = bctx->req_rate/req_rate_timer_invs_per_sec,
-      remainder_to_sched = bctx->req_rate%req_rate_timer_invs_per_sec;
-  bctx->req_rate_timer_invocation %= req_rate_timer_invs_per_sec;
-  clients_to_sched += (int)(
-    remainder_to_sched > bctx->req_rate_timer_invocation++);
+    /*
+      Figure out how many clients of the total (R) to schedule on a particular
+      invocation (N) of the request rate timer.  Schedule the same number
+      (R/N) of clients on every invocation and distribute the remainder (R%N)
+      between the first (R%N) invocations.
+    */
+    int clients_to_sched = bctx->req_rate/req_rate_timer_invs_per_sec,
+        remainder_to_sched = bctx->req_rate%req_rate_timer_invs_per_sec;
+    bctx->req_rate_timer_invocation %= req_rate_timer_invs_per_sec;
+    clients_to_sched += (int)(
+      remainder_to_sched > bctx->req_rate_timer_invocation++);
 
-  /*
-    Respect gradual increase of clients if any
-  */
-  if (bctx->clients_current_sched_num < bctx->client_num_max)
-      clients_to_sched = min (clients_to_sched,
-        max (0, bctx->clients_current_sched_num -
-        (bctx->client_num_max - bctx->free_clients_count)));
+    /*
+      Respect gradual increase of clients if any
+    */
+    if (bctx->clients_current_sched_num < bctx->client_num_max)
+        clients_to_sched = min (clients_to_sched,
+          max (0, bctx->clients_current_sched_num -
+          (bctx->client_num_max - bctx->free_clients_count)));
 
-  for (j = 0; j < clients_to_sched; j++)
+    for (j = 0; j < clients_to_sched; j++)
     {
-      client_context *cctx;
-      if (get_free_client(bctx,&cctx) < 0)
+        client_context *cctx;
+        if (get_free_client(bctx,&cctx) < 0)
         {
-          fprintf(stderr, "%s error: need free clients (%d)\n",
-            __func__,clients_to_sched - j);
-          return -1;
+            fprintf(stderr, "%s error: need free clients (%d)\n",
+              __func__,clients_to_sched - j);
+            return -1;
         }
-      /*cstate client_state =  */
-      load_next_step (cctx, now_time, &scheduled_now);
-      //fprintf (stderr, "%s - after load_next_step client state %d.\n",
-      //  __func__, client_state);
+
+        /*cstate client_state =  */
+        load_next_step (cctx, now_time, &scheduled_now);
     }
-  return 0;
+
+    return 0;
 }
 
 /*****************************************************************************
@@ -1498,19 +1506,22 @@ static int req_rate_sched_clients (batch_context* bctx)
 static int get_free_client (batch_context* bctx,
                             client_context** pcctx)
 {
-  if (!bctx->free_clients_count)
-      return -1;  // No free clients left
-  bctx->free_clients_count--;
-  int free_client_no = bctx->free_clients[bctx->free_clients_count];
-  if (free_client_no <= 0)
+    if (!bctx->free_clients_count)
+        return -1;  // No free clients left
+
+    bctx->free_clients_count--;
+    int free_client_no = bctx->free_clients[bctx->free_clients_count];
+    if (free_client_no <= 0)
     /* Debugging, should not happen :-) */
     {
-      fprintf (stderr,
-       "%s - error: invalid client number in free client list at count %d.\n",
-     __func__,bctx->free_clients_count);
-    return -1;
+        fprintf (stderr,
+            "%s - error: invalid client number in free client list at count %d.\n",
+            __func__,bctx->free_clients_count);
+        return -1;
     }
-  bctx->free_clients[bctx->free_clients_count] = 0; // clear for debugging
-  *pcctx = bctx->cctx_array + free_client_no - 1;
-  return 0;
+
+    bctx->free_clients[bctx->free_clients_count] = 0; // clear for debugging
+    *pcctx = bctx->cctx_array + free_client_no - 1;
+
+    return 0;
 }

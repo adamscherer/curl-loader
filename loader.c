@@ -378,30 +378,30 @@ static void* batch_function (void * batch_data)
 ****************************************************************************************/
 static int initial_handles_init (client_context*const ctx_array)
 {
-  batch_context* bctx = ctx_array->bctx;
-  int k = 0;
+    batch_context* bctx = ctx_array->bctx;
+    int k = 0;
 
-  /* Init CURL multi-handle. */
-  if (! (bctx->multiple_handle = curl_multi_init()) )
-    {
-      fprintf (stderr,
-               "%s - error: curl_multi_init() failed for batch \"%s\" .\n",
-               __func__, bctx->batch_name) ;
-      return -1;
-    }
+    /* Init CURL multi-handle. */
+    if (! (bctx->multiple_handle = curl_multi_init()) )
+      {
+        fprintf (stderr,
+                 "%s - error: curl_multi_init() failed for batch \"%s\" .\n",
+                 __func__, bctx->batch_name) ;
+        return -1;
+      }
 
-  /* Initialize all CURL handles */
-  for (k = 0 ; k < bctx->client_num_max ; k++)
-    {
-      if (!(bctx->cctx_array[k].handle = curl_easy_init ()))
-        {
-          fprintf (stderr,"%s - error: curl_easy_init () failed for k=%d.\n",
-                   __func__, k);
-          return -1;
-        }
-    }
+    /* Initialize all CURL handles */
+    for (k = 0 ; k < bctx->client_num_max ; k++)
+      {
+        if (!(bctx->cctx_array[k].handle = curl_easy_init ()))
+          {
+            fprintf (stderr,"%s - error: curl_easy_init () failed for k=%d.\n",
+                     __func__, k);
+            return -1;
+          }
+      }
 
-  return 0;
+    return 0;
 }
 
 /*
@@ -409,8 +409,8 @@ static int initial_handles_init (client_context*const ctx_array)
 */
 size_t writefunction( void *ptr, size_t size, size_t nmemb, void *stream)
 {
-  fwrite (ptr, size, nmemb, stream);
-  return(nmemb * size);
+    fwrite (ptr, size, nmemb, stream);
+    return(nmemb * size);
 }
 
 /*
@@ -419,14 +419,14 @@ size_t writefunction( void *ptr, size_t size, size_t nmemb, void *stream)
 size_t
 do_nothing_write_func (void *ptr, size_t size, size_t nmemb, void *stream)
 {
-  (void)ptr;
-  (void)stream;
+    (void)ptr;
+    (void)stream;
 
-  /*
-     Overwriting the default behavior to write body bytes to stdout and
-     just skipping the body bytes without any output.
-  */
-  return (size*nmemb);
+    /*
+       Overwriting the default behavior to write body bytes to stdout and
+       just skipping the body bytes without any output.
+    */
+    return (size*nmemb);
 }
 
 /****************************************************************************************
@@ -1205,9 +1205,9 @@ static int client_tracing_function (CURL *handle,
                              size_t size,
                              void *userp)
 {
-  client_context* cctx = (client_context*) userp;
-  char*url_target = NULL, *url_effective = NULL;
-  url_context* url_ctx = &cctx->bctx->url_ctx_array[cctx->url_curr_index];
+    client_context* cctx = (client_context*) userp;
+    char*url_target = NULL, *url_effective = NULL;
+    url_context* url_ctx = &cctx->bctx->url_ctx_array[cctx->url_curr_index];
 
 #if 0 /* GF moved to end of function */
   if (detailed_logging)
@@ -1313,7 +1313,7 @@ static int client_tracing_function (CURL *handle,
         curl_easy_getinfo (handle, CURLINFO_RESPONSE_CODE, &response_status);
 
         if (verbose_logging > 1)
-	  write_log_num("<= Recv header:",response_status);
+          write_log_num("<= Recv header:",response_status);
 
         response_module = response_status / (long)100;
 
@@ -1321,18 +1321,18 @@ static int client_tracing_function (CURL *handle,
           {
 
           case 1: /* 100-Continue and 101 responses */
-            if (! first_hdr_1xx (cctx))
+              if (! first_hdr_1xx (cctx))
               {
-	        write_log_num("!! CONT",response_status);
+                   write_log_num("!! CONT",response_status);
 
-                /* First header of 1xx response */
-                first_hdr_1xx_inc (cctx);
-                stat_1xx_inc (cctx); /* Increment number of 1xx responses */
-                stat_appl_delay_add (cctx, time_resp);
+                  /* First header of 1xx response */
+                  first_hdr_1xx_inc (cctx);
+                  stat_1xx_inc (cctx); /* Increment number of 1xx responses */
+                  stat_appl_delay_add (cctx, time_resp);
               }
 
-            first_hdrs_clear_non_1xx (cctx);
-            break;
+              first_hdrs_clear_non_1xx (cctx);
+              break;
 
 
           case 2: /* 200 OK */

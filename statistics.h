@@ -37,53 +37,53 @@
 */
 typedef struct stat_point
 {
-   /* Inbound bytes number */
-  unsigned long long data_in;
+     /* Inbound bytes number */
+    unsigned long long data_in;
 
-   /* Outbound bytes number */
-  unsigned long long data_out;
+     /* Outbound bytes number */
+    unsigned long long data_out;
 
-   /* Number of requests received */
-  unsigned long requests;
+     /* Number of requests received */
+    unsigned long requests;
 
-  /* Number of 1xx responses */
-  unsigned long resp_1xx;
+    /* Number of 1xx responses */
+    unsigned long resp_1xx;
 
-  /* Number of 2xx responses */
-  unsigned long resp_2xx;
+    /* Number of 2xx responses */
+    unsigned long resp_2xx;
 
-  /* Number of 3xx redirections */
-  unsigned long resp_3xx;
+    /* Number of 3xx redirections */
+    unsigned long resp_3xx;
 
-  /* Number of 4xx responses */
-  unsigned long resp_4xx;
+    /* Number of 4xx responses */
+    unsigned long resp_4xx;
 
-  /* Number of 5xx responses */
-  unsigned long resp_5xx;
+    /* Number of 5xx responses */
+    unsigned long resp_5xx;
 
-  /* Errors of resolving, connecting, internal errors, etc. */
-  unsigned long other_errs;
+    /* Errors of resolving, connecting, internal errors, etc. */
+    unsigned long other_errs;
 
-  /*
-     URL Timeout errors of not accomplishing url fetch prior to the
-     url-completion timer being expired .
-  */
-  unsigned long url_timeout_errs;
+    /*
+       URL Timeout errors of not accomplishing url fetch prior to the
+       url-completion timer being expired .
+    */
+    unsigned long url_timeout_errs;
 
-   /* Num of data points used to calculate average application delay */
-  int appl_delay_points;
+     /* Num of data points used to calculate average application delay */
+    int appl_delay_points;
 
-  /* Average delay in msec between request and response */
-  unsigned long  appl_delay;
+    /* Average delay in msec between request and response */
+    unsigned long  appl_delay;
 
-  /*
-     Num of data points used to calculate average application delay
-     for 2xx-OK responses.
-  */
-  int appl_delay_2xx_points;
+    /*
+       Num of data points used to calculate average application delay
+       for 2xx-OK responses.
+    */
+    int appl_delay_2xx_points;
 
-   /* Average delay in msec between request and 2xx-OK response */
-  unsigned long  appl_delay_2xx;
+     /* Average delay in msec between request and 2xx-OK response */
+    unsigned long  appl_delay_2xx;
 
 } stat_point;
 
@@ -95,28 +95,28 @@ typedef struct stat_point
 */
 typedef struct op_stat_point
 {
-  /* Number of url-counters in the below arrays */
-  unsigned long url_num;
+    /* Number of url-counters in the below arrays */
+    unsigned long url_num;
 
-  /* Array of url counters for successful fetches */
-  unsigned long* url_ok;
+    /* Array of url counters for successful fetches */
+    unsigned long* url_ok;
 
-  /* Array of url counters for failed fetches */
-  unsigned long* url_failed;
+    /* Array of url counters for failed fetches */
+    unsigned long* url_failed;
 
-  /* Array of url counters for timeouted fetches */
-  unsigned long* url_timeouted;
+    /* Array of url counters for timeouted fetches */
+    unsigned long* url_timeouted;
 
-  unsigned long* url_min;
+    unsigned long* url_min;
 
-  unsigned long* url_max;
+    unsigned long* url_max;
 
-  unsigned long* url_last;
+    unsigned long* url_last;
 
-  unsigned long* url_total_seconds;
+    unsigned long* url_total_seconds;
 
-  /* Used for CAPS calculation */
-  unsigned long call_init_count;
+    /* Used for CAPS calculation */
+    unsigned long call_init_count;
 
 } op_stat_point;
 
@@ -187,6 +187,29 @@ int op_stat_point_init (op_stat_point* point, size_t url_num);
 * Return Code/Output - None
 ********************************************************************************/
 void op_stat_point_release (op_stat_point* point);
+
+/*******************************************************************************
+* Function name - url_stat_point_init
+*
+* Description - Initializes an allocated stat_point by allocating relevant
+*               pointer fields for counters
+*
+* Input -       *point  -pointer to the stat_point, where counter will be added
+*               url_num -number of urls
+* Return Code/Output - None
+********************************************************************************/
+int url_stat_point_init (stat_point* point, size_t url_num);
+
+
+/*******************************************************************************
+* Function name -  url_stat_point_release
+*
+* Description - Releases memory allocated by url_stat_point_init ()
+*
+* Input -       *point -  pointer to the stat_point, where counter will be added
+* Return Code/Output - None
+********************************************************************************/
+void url_stat_point_release (stat_point* point);
 
 /*******************************************************************************
 * Function name -  op_stat_update

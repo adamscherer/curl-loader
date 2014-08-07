@@ -1,7 +1,7 @@
 /*
 *     cl_alloc.c
 *
-* 2007 Copyright (c) 
+* 2007 Copyright (c)
 * Robert Iakobashvili, <coroberti@gmail.com>
 * All rights reserved.
 *
@@ -38,13 +38,13 @@
 **********************************************************************/
 void* cl_calloc (size_t obj_num, size_t obj_size)
 {
-  if (!obj_num || !obj_size)
+    if (!obj_num || !obj_size)
     {
-      return NULL;
+        return NULL;
     }
 
-  const size_t aligned_obj_size = 
-    (obj_size + CL_PTR_ALIGN - 1) & (~(CL_PTR_ALIGN - 1));
+    const size_t aligned_obj_size =
+      (obj_size + CL_PTR_ALIGN - 1) & (~(CL_PTR_ALIGN - 1));
 
-  return calloc (obj_num, aligned_obj_size);
+    return calloc (obj_num, aligned_obj_size);
 }

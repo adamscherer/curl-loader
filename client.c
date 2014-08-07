@@ -181,7 +181,7 @@ void stat_1xx_inc (client_context* cctx)
 void stat_2xx_inc (client_context* cctx)
 {
     cctx->st.resp_2xx++;
-    bctx->stat_point[cctx->url_curr_index].resp_2xx++;
+    cctx->bctx->url_stats[cctx->url_curr_index].resp_2xx++;
     cctx->is_https ? cctx->bctx->https_delta.resp_2xx++ :
       cctx->bctx->http_delta.resp_2xx++;
 }

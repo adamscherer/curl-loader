@@ -1338,7 +1338,7 @@ static int client_tracing_function (CURL *handle,
           case 2: /* 200 OK */
             if (! first_hdr_2xx (cctx))
               {
-	        write_log_num("!! OK",response_status);
+                write_log_num("!! OK",response_status);
 
                 /* First header of 2xx response */
                 first_hdr_2xx_inc (cctx);
@@ -1354,7 +1354,7 @@ static int client_tracing_function (CURL *handle,
           case 3: /* 3xx REDIRECTIONS */
             if (! first_hdr_3xx (cctx))
               {
-	        write_log_num("!! RDR",response_status);
+                write_log_num("!! RDR",response_status);
 
                 /* First header of 3xx response */
                 first_hdr_3xx_inc (cctx);
@@ -1367,7 +1367,7 @@ static int client_tracing_function (CURL *handle,
           case 4: /* 4xx Client Error */
               if (! first_hdr_4xx (cctx))
               {
-	        write_log_ext("!! ERCL",response_status,data);
+                write_log_ext("!! ERCL",response_status,data);
 
                 /* First header of 4xx response */
                 first_hdr_4xx_inc (cctx);
@@ -1382,7 +1382,7 @@ static int client_tracing_function (CURL *handle,
           case 5: /* 5xx Server Error */
             if (! first_hdr_5xx (cctx))
               {
-	        write_log_ext("!! ERSR",response_status,data);
+                write_log_ext("!! ERSR",response_status,data);
 
                 /* First header of 5xx response */
                 first_hdr_5xx_inc (cctx);
@@ -1394,8 +1394,8 @@ static int client_tracing_function (CURL *handle,
             break;
 
           default :
-	    write_log_num("<= WARNING: wrong response code (FTP?)",
-	     response_status);
+          write_log_num("<= WARNING: wrong response code (FTP?)",
+            response_status);
             /* FTP breaks it: - cctx->client_state = CSTATE_ERROR; */
             break;
           }
@@ -1449,24 +1449,23 @@ static int client_tracing_function (CURL *handle,
       fprintf (stderr, "default OUT - \n");
     }
 
-  /*
-   GF
-   Show the data after the header label
-   */
-  if (detailed_logging)
-  {
-      char detailed_buff[CURL_ERROR_SIZE +1]; size_t nbytes;
+    /*
+     GF
+     Show the data after the header label
+     */
+    if (detailed_logging)
+    {
+        char detailed_buff[CURL_ERROR_SIZE +1]; size_t nbytes;
 
-      nbytes = (size <= CURL_ERROR_SIZE)? size : CURL_ERROR_SIZE;
-      memcpy (detailed_buff, data, nbytes);
+        nbytes = (size <= CURL_ERROR_SIZE)? size : CURL_ERROR_SIZE;
+        memcpy (detailed_buff, data, nbytes);
 
-      detailed_buff[nbytes] = '\0';
-      fprintf(cctx->file_output, "%s%s\n\n", detailed_buff, nbytes < size? "..." : "");
-  }
+        detailed_buff[nbytes] = '\0';
+        fprintf(cctx->file_output, "%s%s\n\n", detailed_buff, nbytes < size? "..." : "");
+    }
 
-
-  // fflush (cctx->file_output); // Don't do it
-  return 0;
+    // fflush (cctx->file_output); // Don't do it
+    return 0;
 }
 
 
@@ -1540,116 +1539,116 @@ static int init_client_contexts (batch_context* bctx,
 ****************************************************************************************/
 static void free_batch_data_allocations (batch_context* bctx)
 {
-  int i;
+    int i;
 
-  if (! bctx)
+    if (! bctx)
     {
       return;
     }
 
-  op_stat_point_release (&bctx->op_delta);
-  op_stat_point_release (&bctx->op_total);
+    op_stat_point_release (&bctx->op_delta);
+    op_stat_point_release (&bctx->op_total);
 
-  /*
-     Free client contexts
-  */
-  if (bctx->cctx_array)
-  {
-      for (i = 0 ; i < bctx->client_num_max ; i++)
-      {
-          client_context* cctx = &bctx->cctx_array[i];
+    /*
+       Free client contexts
+    */
+    if (bctx->cctx_array)
+    {
+        for (i = 0 ; i < bctx->client_num_max ; i++)
+        {
+            client_context* cctx = &bctx->cctx_array[i];
 
-          if (cctx->handle)
-          {
-              curl_easy_cleanup (cctx->handle);
-              cctx->handle = NULL;
-          }
+            if (cctx->handle)
+            {
+                curl_easy_cleanup (cctx->handle);
+                cctx->handle = NULL;
+            }
 
-          /* Free client POST-buffers */
-          if (cctx->post_data)
-          {
-              free (cctx->post_data);
-              cctx->post_data = NULL;
-          }
+            /* Free client POST-buffers */
+            if (cctx->post_data)
+            {
+                free (cctx->post_data);
+                cctx->post_data = NULL;
+            }
 
-          if (cctx->logfile_headers)
-          {
-              fclose (cctx->logfile_headers);
-              cctx->logfile_headers= NULL;
-          }
+            if (cctx->logfile_headers)
+            {
+                fclose (cctx->logfile_headers);
+                cctx->logfile_headers= NULL;
+            }
 
-          if (cctx->logfile_bodies)
-          {
-              fclose (cctx->logfile_bodies);
-              cctx->logfile_bodies = NULL;
-          }
+            if (cctx->logfile_bodies)
+            {
+                fclose (cctx->logfile_bodies);
+                cctx->logfile_bodies = NULL;
+            }
 
-          if (cctx->url_fetch_decision)
-          {
-              free (cctx->url_fetch_decision);
-              cctx->url_fetch_decision = NULL;
-          }
-      }/* from for */
+            if (cctx->url_fetch_decision)
+            {
+                free (cctx->url_fetch_decision);
+                cctx->url_fetch_decision = NULL;
+            }
+        }/* from for */
 
-      free(bctx->cctx_array);
-      bctx->cctx_array = NULL;
-  }
+        free(bctx->cctx_array);
+        bctx->cctx_array = NULL;
+    }
 
-  /*
-     Free url contexts
-  */
-  if (bctx->url_ctx_array)
-  {
-      /* Free all URL objects */
+    /*
+       Free url contexts
+    */
+    if (bctx->url_ctx_array)
+    {
+        /* Free all URL objects */
 
-      for (i = 0 ; i < bctx->urls_num; i++)
-      {
-          url_context* url = &bctx->url_ctx_array[i];
+        for (i = 0 ; i < bctx->urls_num; i++)
+        {
+            url_context* url = &bctx->url_ctx_array[i];
 
-          free_url (url, bctx->client_num_max);
-      }
+            free_url (url, bctx->client_num_max);
+        }
 
-      /* Free URL context array */
-      free (bctx->url_ctx_array);
-      bctx->url_ctx_array = NULL;
-  }
+        /* Free URL context array */
+        free (bctx->url_ctx_array);
+        bctx->url_ctx_array = NULL;
+    }
 }
 
 static void free_url (url_context* url, int clients_max)
 {
-  /* GF */
-  free_url_extensions(url);
+    /* GF */
+    free_url_extensions(url);
 
-  /* Free url string */
-  if (url->url_str)
+    /* Free url string */
+    if (url->url_str)
     {
-      free (url->url_str);
-      url->url_str = 0;
-      url->url_str_len = 0;
+        free (url->url_str);
+        url->url_str = 0;
+        url->url_str_len = 0;
     }
 
-  /* Free custom HTTP headers. */
-  if (url->custom_http_hdrs)
+    /* Free custom HTTP headers. */
+    if (url->custom_http_hdrs)
     {
-      curl_slist_free_all(url->custom_http_hdrs);
-      url->custom_http_hdrs = 0;
+        curl_slist_free_all(url->custom_http_hdrs);
+        url->custom_http_hdrs = 0;
     }
 
-  if (url->form_str)
+    if (url->form_str)
     {
-      free (url->form_str);
-      url->form_str = 0;
+        free (url->form_str);
+        url->form_str = 0;
     }
 
-  /* Free Form records file (credentials). */
-  if (url->form_records_file)
+    /* Free Form records file (credentials). */
+    if (url->form_records_file)
     {
-      free (url->form_records_file);
-      url->form_records_file = 0;
+        free (url->form_records_file);
+        url->form_records_file = 0;
     }
 
-  /* Free form_records_array */
-  if (url->form_records_array)
+    /* Free form_records_array */
+    if (url->form_records_array)
     {
       int j;
       for (j = 0; j < clients_max; j++)
@@ -1669,44 +1668,44 @@ static void free_url (url_context* url, int clients_max)
       url->form_records_array = 0;
     }
 
-  /* Free upload file */
-  if (url->upload_file)
+    /* Free upload file */
+    if (url->upload_file)
     {
-      free (url->upload_file);
-      url->upload_file = 0;
+        free (url->upload_file);
+        url->upload_file = 0;
     }
 
-  /* Close file pointer of upload file */
-  if (url->upload_file_ptr)
+    /* Close file pointer of upload file */
+    if (url->upload_file_ptr)
     {
-      fclose (url->upload_file_ptr);
-      url->upload_file_ptr = 0;
+        fclose (url->upload_file_ptr);
+        url->upload_file_ptr = 0;
     }
 
-  /* Free web-authentication credentials */
-  if (url->web_auth_credentials)
+    /* Free web-authentication credentials */
+    if (url->web_auth_credentials)
     {
-      free (url->web_auth_credentials);
-      url->web_auth_credentials = 0;
+        free (url->web_auth_credentials);
+        url->web_auth_credentials = 0;
     }
 
-  /* Free proxy-authentication credentials */
-  if (url->proxy_auth_credentials)
+    /* Free proxy-authentication credentials */
+    if (url->proxy_auth_credentials)
     {
-      free (url->proxy_auth_credentials);
-      url->proxy_auth_credentials = 0;
+        free (url->proxy_auth_credentials);
+        url->proxy_auth_credentials = 0;
     }
 
-  if (url->dir_log)
+    if (url->dir_log)
     {
-      free (url->dir_log);
-      url->dir_log = 0;
+        free (url->dir_log);
+        url->dir_log = 0;
     }
 
-  if (url->resp_status_errors_tbl)
+    if (url->resp_status_errors_tbl)
     {
-      free (url->resp_status_errors_tbl);
-      url->resp_status_errors_tbl = 0;
+        free (url->resp_status_errors_tbl);
+        url->resp_status_errors_tbl = 0;
     }
 }
 
@@ -1720,19 +1719,19 @@ static void free_url (url_context* url, int clients_max)
 *******************************************************************************/
 static int create_ip_addrs (batch_context* bctx_array, int bctx_num)
 {
-  int batch_index, client_index; /* Batch and client indexes */
-  char*** ip_addresses =0;
+    int batch_index, client_index; /* Batch and client indexes */
+    char*** ip_addresses =0;
 
-  /*
-     Add secondary IP-addresses to the "loading" network interface.
-  */
-  if (!(ip_addresses = (char***)calloc (bctx_num, sizeof (char**))))
+    /*
+       Add secondary IP-addresses to the "loading" network interface.
+    */
+    if (!(ip_addresses = (char***)calloc (bctx_num, sizeof (char**))))
     {
       fprintf (stderr, "%s - error: failed to allocate ip_addresses.\n", __func__);
       return -1;
     }
 
-  for (batch_index = 0 ; batch_index < bctx_num ; batch_index++)
+    for (batch_index = 0 ; batch_index < bctx_num ; batch_index++)
     {
       /*
          Allocate the array of IP-addresses
@@ -1806,22 +1805,22 @@ static int ip_addr_str_allocate_init (batch_context* bctx,
                                       int client_index,
                                       char** addr_str)
 {
-  struct in_addr in_address;
-  char ipv6_string[INET6_ADDRSTRLEN+1];
-  char* ipv4_string = 0;
-  char* ipaddrstr = 0;
+    struct in_addr in_address;
+    char ipv6_string[INET6_ADDRSTRLEN+1];
+    char* ipv4_string = 0;
+    char* ipaddrstr = 0;
 
-  *addr_str = NULL;
+    *addr_str = NULL;
 
-  if (! (ipaddrstr = (char *)calloc (bctx->ipv6 ? INET6_ADDRSTRLEN + 1 :
-                                    INET_ADDRSTRLEN + 1, sizeof (char))))
+    if (! (ipaddrstr = (char *)calloc (bctx->ipv6 ? INET6_ADDRSTRLEN + 1 :
+                                      INET_ADDRSTRLEN + 1, sizeof (char))))
     {
       fprintf (stderr, "%s - allocation of ipaddrstr failed for client %d.\n",
                __func__, client_index);
       return -1;
     }
 
-  if (bctx->ipv6 == 0)
+    if (bctx->ipv6 == 0)
     {
       /*
          When clients are not using common IP, advance the
@@ -1837,7 +1836,7 @@ static int ip_addr_str_allocate_init (batch_context* bctx,
           return -1;
         }
     }
-  else
+    else
     {
       ///------------------------------------------------ IPv6 -----------------------------------------------------------------///
 
@@ -2013,7 +2012,6 @@ static int create_thr_subbatches (batch_context *bc_arr, int subbatches_num)
   }
 
   int c_num_max = 0;
-
 
   int i;
   for (i = 0 ; i < subbatches_num ; i++)

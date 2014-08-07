@@ -245,7 +245,7 @@ int url_stat_point_init (stat_point* point, size_t url_num)
 {
     if (url_num)
     {
-        if (!(point = calloc (url_num, sizeof (stat_point))))
+        if (!(point = (url_context *) cl_calloc (url_num, sizeof (stat_point))))
         {
             goto allocation_failed;
         }

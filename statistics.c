@@ -943,9 +943,32 @@ static void store_json_data (batch_context* bctx,
     json_object_object_add(stat_object, "5xxRequests", json_object_new_int(http->resp_5xx + https->resp_5xx));
     json_object_object_add(stat_object, "totalDataIn", json_object_new_int(http->data_in + https->data_in));
     json_object_object_add(stat_object, "totalDataOut", json_object_new_int(http->data_out + https->data_out));
-    json_object_object_add(stat_object, "avgTime", json_object_new_int(
-        ((http->appl_delay * http->appl_delay_points) + (https->appl_delay * https->appl_delay_points))
-          / (http->appl_delay_points + https->appl_delay_points) ));
+
+    int points = http->appl_delay_points + https->appl_delay_points;
+    if (points > 0)
+    {
+        json_object_object_add(stat_object, "avgTime", json_object_new_int(
+            ((http->appl_delay * http->appl_delay_points) +
+             (https->appl_delay * https->appl_delay_points))
+              / points ));
+    }
+    else
+    {
+        json_object_object_add(stat_object, "avgTime", json_object_new_int(0));
+    }
+
+    int points2xx = http->appl_delay_2xx_points + https->appl_delay_2xx_points;
+    if (points2xx > 0)
+    {
+        json_object_object_add(stat_object, "avgTime2xx", json_object_new_int(
+            ((http->appl_delay_2xx * http->appl_delay_2xx_points) +
+             (https->appl_delay_2xx * https->appl_delay_2xx_points))
+              / points2xx ));
+    }
+    else
+    {
+        json_object_object_add(stat_object, "avgTime2xx", json_object_new_int(0));
+    }
 
     my_array = json_object_new_array();
     signed long i;

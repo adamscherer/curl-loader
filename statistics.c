@@ -956,22 +956,22 @@ static void store_json_data (batch_context* bctx,
         json_object_object_add(my_url_object, "success", json_object_new_int(osp_total->url_ok[i]));
         json_object_object_add(my_url_object, "fail", json_object_new_int(osp_total->url_failed[i]));
         json_object_object_add(my_url_object, "timeout", json_object_new_int(osp_total->url_timeouted[i]));
-        json_object_object_add(my_url_object, "min", json_object_new_int(url_stats[i]->min_resp));
-        json_object_object_add(my_url_object, "max", json_object_new_int(url_stats[i]->max_resp));
-        json_object_object_add(my_url_object, "last", json_object_new_int(url_stats[i]->last_resp));
-        json_object_object_add(my_url_object, "avg", json_object_new_int(url_stats[i]->appl_delay));
-        json_object_object_add(my_url_object, "min2xx", json_object_new_int(url_stats[i]->min_resp_2xx));
-        json_object_object_add(my_url_object, "max2xx", json_object_new_int(url_stats[i]->max_resp_2xx));
-        json_object_object_add(my_url_object, "last2xx", json_object_new_int(url_stats[i]->last_resp_2xx));
-        json_object_object_add(my_url_object, "avg2xx", json_object_new_int(url_stats[i]->appl_delay_2xx));
-        json_object_object_add(my_url_object, "totalRequests", json_object_new_int(url_stats[i]->requests));
-        json_object_object_add(my_url_object, "1xxRequests", json_object_new_int(url_stats[i]->resp_1xx));
-        json_object_object_add(my_url_object, "2xxRequests", json_object_new_int(url_stats[i]->resp_2xx));
-        json_object_object_add(my_url_object, "3xxRequests", json_object_new_int(url_stats[i]->resp_3xx));
-        json_object_object_add(my_url_object, "4xxRequests", json_object_new_int(url_stats[i]->resp_4xx));
-        json_object_object_add(my_url_object, "5xxRequests", json_object_new_int(url_stats[i]->resp_5xx));
-        json_object_object_add(my_url_object, "totalDataIn", json_object_new_int(url_stats[i]->data_in));
-        json_object_object_add(my_url_object, "totalDataOut", json_object_new_int(url_stats[i]->data_out));
+        json_object_object_add(my_url_object, "min", json_object_new_int(url_stats[i].min_resp));
+        json_object_object_add(my_url_object, "max", json_object_new_int(url_stats[i].max_resp));
+        json_object_object_add(my_url_object, "last", json_object_new_int(url_stats[i].last_resp));
+        json_object_object_add(my_url_object, "avg", json_object_new_int(url_stats[i].appl_delay));
+        json_object_object_add(my_url_object, "min2xx", json_object_new_int(url_stats[i].min_resp_2xx));
+        json_object_object_add(my_url_object, "max2xx", json_object_new_int(url_stats[i].max_resp_2xx));
+        json_object_object_add(my_url_object, "last2xx", json_object_new_int(url_stats[i].last_resp_2xx));
+        json_object_object_add(my_url_object, "avg2xx", json_object_new_int(url_stats[i].appl_delay_2xx));
+        json_object_object_add(my_url_object, "totalRequests", json_object_new_int(url_stats[i].requests));
+        json_object_object_add(my_url_object, "1xxRequests", json_object_new_int(url_stats[i].resp_1xx));
+        json_object_object_add(my_url_object, "2xxRequests", json_object_new_int(url_stats[i].resp_2xx));
+        json_object_object_add(my_url_object, "3xxRequests", json_object_new_int(url_stats[i].resp_3xx));
+        json_object_object_add(my_url_object, "4xxRequests", json_object_new_int(url_stats[i].resp_4xx));
+        json_object_object_add(my_url_object, "5xxRequests", json_object_new_int(url_stats[i].resp_5xx));
+        json_object_object_add(my_url_object, "totalDataIn", json_object_new_int(url_stats[i].data_in));
+        json_object_object_add(my_url_object, "totalDataOut", json_object_new_int(url_stats[i].data_out));
         json_object_array_add(my_array, my_url_object);
     }
 

@@ -414,7 +414,7 @@ void dump_final_statistics (client_context* cctx)
     if (!seconds_run)
       return;
 
-    fprintf(stdout,"\nTest total duration was %d seconds and CAPS average %ld:\n",
+    fprintf(stderr,"\nTest total duration was %d seconds and CAPS average %ld:\n",
             seconds_run, bctx->op_total.call_init_count / seconds_run);
 
     dump_statistics (seconds_run,
@@ -925,7 +925,6 @@ static void store_json_data (batch_context* bctx,
                       stat_point *http,
                       stat_point *https)
 {
-    fprintf(stderr, "Called store json");
     int seconds_run = (int)(now - bctx->start_time)/ 1000;
     url_context* url_arr = bctx->url_ctx_array;
     stat_point* url_stats = bctx->url_stats;

@@ -932,6 +932,7 @@ static void store_json_data (batch_context* bctx,
     json_object *my_object, *my_array, *stat_object;
     my_object = json_object_new_object();
     stat_object = json_object_new_object();
+    json_object_object_add(stat_object, "timestamp", json_object_new_int64(now));
     json_object_object_add(stat_object, "totalClients", json_object_new_int(clients_total_num));
     json_object_object_add(stat_object, "secondsRun", json_object_new_int(seconds_run));
     json_object_object_add(stat_object, "totalRequests", json_object_new_int(http->requests + https->requests));
@@ -940,8 +941,8 @@ static void store_json_data (batch_context* bctx,
     json_object_object_add(stat_object, "3xxRequests", json_object_new_int(http->resp_3xx + https->resp_3xx));
     json_object_object_add(stat_object, "4xxRequests", json_object_new_int(http->resp_4xx + https->resp_4xx));
     json_object_object_add(stat_object, "5xxRequests", json_object_new_int(http->resp_5xx + https->resp_5xx));
-    json_object_object_add(stat_object, "totalDataIn", json_object_new_int(http->data_in + https->data_in));
-    json_object_object_add(stat_object, "totalDataOut", json_object_new_int(http->data_out + https->data_out));
+    json_object_object_add(stat_object, "totalDataIn", json_object_new_int64(http->data_in + https->data_in));
+    json_object_object_add(stat_object, "totalDataOut", json_object_new_int64(http->data_out + https->data_out));
 
     int points = http->appl_delay_points + https->appl_delay_points;
     if (points > 0)
@@ -994,8 +995,8 @@ static void store_json_data (batch_context* bctx,
         json_object_object_add(my_url_object, "3xxRequests", json_object_new_int(url_stats[i].resp_3xx));
         json_object_object_add(my_url_object, "4xxRequests", json_object_new_int(url_stats[i].resp_4xx));
         json_object_object_add(my_url_object, "5xxRequests", json_object_new_int(url_stats[i].resp_5xx));
-        json_object_object_add(my_url_object, "totalDataIn", json_object_new_int(url_stats[i].data_in));
-        json_object_object_add(my_url_object, "totalDataOut", json_object_new_int(url_stats[i].data_out));
+        json_object_object_add(my_url_object, "totalDataIn", json_object_new_int64(url_stats[i].data_in));
+        json_object_object_add(my_url_object, "totalDataOut", json_object_new_int64(url_stats[i].data_out));
         json_object_array_add(my_array, my_url_object);
     }
 

@@ -578,33 +578,33 @@ static int mget_url_hyper (batch_context* bctx)
  ****************************************************************************************/
 static int mperform_hyper (batch_context* bctx, int* still_running)
 {
-  CURLM *mhandle =  bctx->multiple_handle;
-  int cycle_counter = 0;
-  int msg_num = 0, st;
-  const int snapshot_timeout = snapshot_statistics_timeout*1000;
-  unsigned long now_time;
-  CURLMsg *msg;
-  int scheduled_now_count = 0, scheduled_now = 0;
+    CURLM *mhandle =  bctx->multiple_handle;
+    int cycle_counter = 0;
+    int msg_num = 0, st;
+    const int snapshot_timeout = snapshot_statistics_timeout*1000;
+    unsigned long now_time;
+    CURLMsg *msg;
+    int scheduled_now_count = 0, scheduled_now = 0;
 
-  (void)still_running;
+    (void)still_running;
 
-  if (pending_active_and_waiting_clients_num (bctx) == 0 &&
-      bctx->do_client_num_gradual_increase == 0)
-  {
-      return on_exit_hyper (bctx);
-  }
-
-  now_time = get_tick_count ();
-
-  if ((long)(now_time - bctx->last_measure) > snapshot_timeout)
+    if (pending_active_and_waiting_clients_num (bctx) == 0 &&
+        bctx->do_client_num_gradual_increase == 0)
     {
-      if (is_batch_group_leader (bctx))
+        return on_exit_hyper (bctx);
+    }
+
+    now_time = get_tick_count ();
+
+    if ((long)(now_time - bctx->last_measure) > snapshot_timeout)
+    {
+        if (is_batch_group_leader (bctx))
         {
           dump_snapshot_interval (bctx, now_time);
         }
     }
 
-  while( (msg = curl_multi_info_read (mhandle, &msg_num)) != 0)
+    while( (msg = curl_multi_info_read (mhandle, &msg_num)) != 0)
     {
       if (msg->msg == CURLMSG_DONE)
         {
@@ -636,10 +636,10 @@ static int mperform_hyper (batch_context* bctx, int* still_running)
             }
 
           /*
-	          Load next step only if request rate is not specified.
-		        Otherwise requests are made on a timer.
+            Load next step only if request rate is not specified.
+  	        Otherwise requests are made on a timer.
           */
-	        if (bctx->req_rate)
+          if (bctx->req_rate)
             {
               if (put_free_client(cctx) < 0)
                 {
@@ -670,12 +670,12 @@ static int mperform_hyper (batch_context* bctx, int* still_running)
         }
     }
 
-  if (dispatch_expired_timers (bctx, now_time) > 0 || scheduled_now_count)
+    if (dispatch_expired_timers (bctx, now_time) > 0 || scheduled_now_count)
     {
-      while (CURLM_CALL_MULTI_PERFORM ==
+        while (CURLM_CALL_MULTI_PERFORM ==
              curl_multi_socket_all (bctx->multiple_handle, &st))
           ;
     }
 
-  return 0;
+    return 0;
 }

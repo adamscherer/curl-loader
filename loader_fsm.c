@@ -221,7 +221,7 @@ int init_timers_and_add_initial_clients_to_load (batch_context* bctx,
         /*
            Schedule the gradual loading clients increase timer.
         */
-        bctx->clients_num_inc_timer_node.next_timer = now_time + 1000;
+        bctx->clients_num_inc_timer_node.next_timer = now_time + 10000;
         bctx->clients_num_inc_timer_node.period = 1000;
         bctx->clients_num_inc_timer_node.func_timer =
           handle_gradual_increase_clients_num_timer;
@@ -493,83 +493,81 @@ int load_next_step (client_context* cctx,
  *******************************************************************************/
 int add_loading_clients (batch_context* bctx)
 {
-  //client_context* cctx = bctx->cctx_array;
-  long clients_to_sched = 0;
+    long clients_to_sched = 0;
 
-  /*
-     Return, if initial gradual scheduling of all new clients has been stopped
-  */
-  if (bctx->stop_client_num_gradual_increase)
+    /*
+       Return, if initial gradual scheduling of all new clients has been stopped
+    */
+    if (bctx->stop_client_num_gradual_increase)
     {
- #if 0
-      fprintf (cctx->file_output,
-               "SCHED: %s - returning on zero >stop_client_num_gradual_increase.\n",
-              __func__);
- #endif
-      return 0; // Returning 0 means do not stop the timer
+     #if 0
+          fprintf (cctx->file_output,
+                   "SCHED: %s - returning on zero >stop_client_num_gradual_increase.\n",
+                  __func__);
+     #endif
+        return 0; // Returning 0 means do not stop the timer
     }
 
-  /*
-     Return, if initial gradual scheduling of all new clients has been accomplished.
-  */
-  if (bctx->client_num_max <= bctx->clients_current_sched_num)
+    /*
+       Return, if initial gradual scheduling of all new clients has been accomplished.
+    */
+    if (bctx->client_num_max <= bctx->clients_current_sched_num)
     {
-      bctx->do_client_num_gradual_increase = 0;
-#if 0
-      fprintf (cctx->file_output,
-               "SCHED: do_client_num_gradual_increase = 0 on client_num_max %d"
-              " and clients_current_sched_num %d \n",
-              bctx->client_num_max, bctx->clients_current_sched_num);
-#endif
-      return -1; // Returning (-1) means - stop the timer
+        bctx->do_client_num_gradual_increase = 0;
+    #if 0
+          fprintf (cctx->file_output,
+                   "SCHED: do_client_num_gradual_increase = 0 on client_num_max %d"
+                  " and clients_current_sched_num %d \n",
+                  bctx->client_num_max, bctx->clients_current_sched_num);
+    #endif
+        return -1; // Returning (-1) means - stop the timer
     }
 
-  /* Calculate number of the new clients to schedule. */
-  if (!bctx->clients_current_sched_num && bctx->client_num_start)
-  {
-      /* first time scheduling - zero bctx->clients_current_sched_num */
-      clients_to_sched = bctx->client_num_start;
-  }
-  else
-  {
-      clients_to_sched = bctx->clients_rampup_inc ?
-        min (bctx->clients_rampup_inc, bctx->client_num_max -
-             bctx->clients_current_sched_num) : bctx->client_num_max;
-  }
+    /* Calculate number of the new clients to schedule. */
+    if (!bctx->clients_current_sched_num && bctx->client_num_start)
+    {
+        /* first time scheduling - zero bctx->clients_current_sched_num */
+        clients_to_sched = bctx->client_num_start;
+    }
+    else
+    {
+        clients_to_sched = bctx->clients_rampup_inc ?
+          min (bctx->clients_rampup_inc, bctx->client_num_max -
+               bctx->clients_current_sched_num) : bctx->client_num_max;
+    }
 
 
-#if 0
-  fprintf (cctx->file_output,
-           "SCHED: clients_to_sched %ld, bctx->clients_current_sched_num %d.\n",
-           clients_to_sched, bctx->clients_current_sched_num);
-#endif
-  /*
-     Schedule new clients by initializing their CURL handle with
-     URL, etc. parameters and adding it to MCURL multi-handle.
-     Defer activation to timer if fixed request rate is specified.
-  */
-  if (!bctx->req_rate)
-  {
-    if (orderly_sched_clients (bctx, clients_to_sched) < 0)
-        return -1;
-  }
+  #if 0
+    fprintf (cctx->file_output,
+             "SCHED: clients_to_sched %ld, bctx->clients_current_sched_num %d.\n",
+             clients_to_sched, bctx->clients_current_sched_num);
+  #endif
+    /*
+       Schedule new clients by initializing their CURL handle with
+       URL, etc. parameters and adding it to MCURL multi-handle.
+       Defer activation to timer if fixed request rate is specified.
+    */
+    if (!bctx->req_rate)
+    {
+        if (orderly_sched_clients (bctx, clients_to_sched) < 0)
+            return -1;
+    }
 
-  /*
-     Re-calculate assisting counters and enable do_client_num_gradual_increase
-     flag, if required.
-  */
+    /*
+       Re-calculate assisting counters and enable do_client_num_gradual_increase
+       flag, if required.
+    */
+    bctx->clients_current_sched_num += clients_to_sched;
 
-  bctx->clients_current_sched_num += clients_to_sched;
+    if (bctx->clients_rampup_inc)
+    {
+        if (bctx->clients_current_sched_num < bctx->client_num_max)
+        {
+            bctx->do_client_num_gradual_increase = 1;
+        }
+    }
 
-  if (bctx->clients_rampup_inc)
-  {
-    if (bctx->clients_current_sched_num < bctx->client_num_max)
-      {
-        bctx->do_client_num_gradual_increase = 1;
-      }
-  }
-
-  return 0;
+    return 0;
 }
 
 /*******************************************************************************
@@ -583,37 +581,37 @@ int add_loading_clients (batch_context* bctx)
  *******************************************************************************/
 int add_loading_clients_num (batch_context* bctx, int add_number)
 {
-  if (add_number <= 0)
+    if (add_number <= 0)
     {
-      return -1;
+        return -1;
     }
 
-  if (bctx->client_num_max <= bctx->clients_current_sched_num)
+    if (bctx->client_num_max <= bctx->clients_current_sched_num)
     {
-      return -1; // No room to add more
+        return -1; // No room to add more
     }
 
-  /* Calculate number of the new clients to schedule. */
-  const long clients_to_sched = min (add_number,
-                                     bctx->client_num_max -
-                                     bctx->clients_current_sched_num);
+    /* Calculate number of the new clients to schedule. */
+    const long clients_to_sched = min (add_number,
+                                       bctx->client_num_max -
+                                       bctx->clients_current_sched_num);
 
-  //fprintf (stderr, "%s - adding %ld clients.\n", __func__, clients_to_sched);
+    //fprintf (stderr, "%s - adding %ld clients.\n", __func__, clients_to_sched);
 
-  /*
-     Schedule new clients by initializing their CURL handle with
-     URL, etc. parameters and adding it to MCURL multi-handle.
-     Defer activation to timer if fixed request rate is specified.
-  */
-  if (!bctx->req_rate)
+    /*
+       Schedule new clients by initializing their CURL handle with
+       URL, etc. parameters and adding it to MCURL multi-handle.
+       Defer activation to timer if fixed request rate is specified.
+    */
+    if (!bctx->req_rate)
     {
       if (orderly_sched_clients (bctx, clients_to_sched) < 0)
           return -1;
     }
 
-  bctx->clients_current_sched_num += clients_to_sched;
+    bctx->clients_current_sched_num += clients_to_sched;
 
-  return 0;
+    return 0;
 }
 
 
@@ -787,28 +785,22 @@ static int handle_gradual_increase_clients_num_timer (timer_node* timer_node,
                                                       void* pvoid_param,
                                                       unsigned long ulong_param)
 {
-  batch_context* bctx = (batch_context *) pvoid_param;
-  (void) timer_node;
-  (void) ulong_param;
+    batch_context* bctx = (batch_context *) pvoid_param;
+    (void) timer_node;
+    (void) ulong_param;
 
-  //client_context* cctx = bctx->cctx_array;
-
-  //fprintf (cctx->file_output, "SCHED: %s - entered.\n", __func__);
-
-  if (add_loading_clients (bctx) == -1)
+    if (add_loading_clients (bctx) == -1)
     {
-      //fprintf (stderr, "%s add_loading_clients () returns -1.\n", __func__);
-#if 0
-      fprintf (cctx->file_output,
-               "SCHED: %s - add_loading_clients failed.\n",
-               __func__);
-#endif
-      return -1;
+        fprintf (stderr, "%s add_loading_clients () returns -1.\n", __func__);
+  #if 0
+        fprintf (cctx->file_output,
+                 "SCHED: %s - add_loading_clients failed.\n",
+                 __func__);
+  #endif
+        return -1;
     }
 
-  //fprintf (cctx->file_output, "SCHED: %s - returning 0.\n", __func__);
-  //fprintf (stderr, "%s - runs.\n", __func__);
-  return 0;
+    return 0;
 }
 
 /****************************************************************************************
@@ -825,19 +817,19 @@ static int handle_logfile_rewinding_timer (timer_node* timer_node,
                                            void* pvoid_param,
                                            unsigned long ulong_param)
 {
-    batch_context* bctx = (batch_context *) pvoid_param;
-    (void) timer_node;
-    (void) ulong_param;
+      batch_context* bctx = (batch_context *) pvoid_param;
+      (void) timer_node;
+      (void) ulong_param;
 
-    if (rewind_logfile_above_maxsize (bctx->cctx_array->file_output) == -1)
+      if (rewind_logfile_above_maxsize (bctx->cctx_array->file_output) == -1)
       {
-        fprintf (stderr, "%s - rewind_logfile_above_maxsize() failed .\n",
-        	__func__);
-        return -1;
+          fprintf (stderr, "%s - rewind_logfile_above_maxsize() failed .\n",
+          	__func__);
+          return -1;
       }
 
-    //fprintf (stderr, "%s - runs.\n", __func__);
-    return 0;
+      //fprintf (stderr, "%s - runs.\n", __func__);
+      return 0;
 }
 
 /******************************************************************************

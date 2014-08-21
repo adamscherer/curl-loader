@@ -104,6 +104,7 @@ static int batch_name_parser (batch_context*const bctx, char*const value);
 static int clients_num_max_parser (batch_context*const bctx, char*const value);
 static int clients_num_start_parser (batch_context*const bctx, char*const value);
 static int clients_rampup_inc_parser (batch_context*const bctx, char*const value);
+static int clients_rampup_inc_period_parser (batch_context*const bctx, char*const value);
 static int interface_parser (batch_context*const bctx, char*const value);
 static int netmask_parser (batch_context*const bctx, char*const value);
 static int ip_addr_min_parser (batch_context*const bctx, char*const value);
@@ -181,6 +182,7 @@ static const tag_parser_pair tp_map [] =
     {"CLIENTS_NUM_MAX", clients_num_max_parser},
     {"CLIENTS_NUM_START", clients_num_start_parser},
     {"CLIENTS_RAMPUP_INC", clients_rampup_inc_parser},
+    {"CLIENTS_RAMPUP_INC_PERIOD", clients_rampup_inc_parser},
     {"INTERFACE", interface_parser},
     {"NETMASK", netmask_parser},
     {"IP_ADDR_MIN", ip_addr_min_parser},
@@ -947,6 +949,22 @@ static int clients_rampup_inc_parser (batch_context*const bctx, char*const value
                  __func__, value);
         return -1;
     }
+    return 0;
+}
+
+static int clients_rampup_inc_period_parser (batch_context*const bctx, char*const value)
+{
+    bctx->clients_rampup_period = atoi (value);
+    if (bctx->clients_rampup_period < 1)
+    {
+        fprintf (stderr,
+                 "%s - error: clients_rampup_period (%s) should be a positive number\n",
+                 __func__, value);
+        return -1;
+    }
+
+    bctx->clients_rampup_period = bctx->clients_rampup_period * 1000;
+    
     return 0;
 }
 

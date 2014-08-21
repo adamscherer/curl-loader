@@ -221,8 +221,8 @@ int init_timers_and_add_initial_clients_to_load (batch_context* bctx,
         /*
            Schedule the gradual loading clients increase timer.
         */
-        bctx->clients_num_inc_timer_node.next_timer = now_time + 10000;
-        bctx->clients_num_inc_timer_node.period = 1000;
+        bctx->clients_num_inc_timer_node.next_timer = now_time + 1000;
+        bctx->clients_num_inc_timer_node.period = bctx->clients_rampup_period;
         bctx->clients_num_inc_timer_node.func_timer =
           handle_gradual_increase_clients_num_timer;
 

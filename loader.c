@@ -2050,6 +2050,8 @@ static int create_thr_subbatches (batch_context *bc_arr, int subbatches_num)
 
       bc_arr[i].ipv6 = master.ipv6;
 
+      bc_arr[i].clients_rampup_period = master.clients_rampup_period;
+
       if (! master.ip_shared_num)
       {
           if (! bc_arr[i].ipv6)

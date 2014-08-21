@@ -97,7 +97,7 @@ typedef struct batch_context
     /*
        Seconds to wait before adding new clients (clients_rampup_inc).
     */
-    int clients_rampup_period = 5000;
+    int clients_rampup_period;
 
      /* Name of the network interface to be used for loading, e.g. "eth0", "eth1:16" */
     char net_interface[16];

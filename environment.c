@@ -39,7 +39,7 @@
 #include "conf.h"
 
 #define OPEN_FDS_SUGGESTION 19999
-
+#define DEFAULT_RAMPUP_PERIOD 5000
 
 int test_environment (batch_context* bctx)
 {
@@ -130,6 +130,11 @@ int test_environment (batch_context* bctx)
                      " Please, press Cntl-C to stop running or ENTER to continue.\n");
             getchar ();
         }
+    }
+
+    if (bctx->clients_rampup_period == 0)
+    {
+      bctx->clients_rampup_period = DEFAULT_RAMPUP_PERIOD;
     }
 
     return 0;

@@ -368,6 +368,7 @@ int load_next_step (client_context* cctx,
         {
                 rval_load = CSTATE_FINISHED_OK;
                 bctx->requests_completed = 1;
+                bctx->do_client_num_gradual_increase = 0;
         }
         else
         {

@@ -1,7 +1,7 @@
 /*
 *     mpool.c
 *
-* 2006 Copyright (c) 
+* 2006 Copyright (c)
 * Robert Iakobashvili, <coroberti@gmail.com>
 * All rights reserved.
 *
@@ -51,15 +51,15 @@ allocatable* allocatable_get_next (allocatable* item)
 int mpool_add (mpool* mpool, allocatable* new_item)
 {
   /* Put to free_list_head */
-  
+
   if (mpool->free_list_head)
     {
       allocatable_set_next (new_item, mpool->free_list_head);
    }
-	
+
   mpool->free_list_head = new_item;
   mpool->free_list_size++;
-  
+
   return 0;
 }
 
@@ -95,11 +95,11 @@ allocatable* mpool_take_obj (mpool* mpool)
     }
 
   allocatable* obj = 0;
-	
+
   if (! (obj = mpool_remove (mpool)))
     {
       /*
-        Mpool is empty. Allocating from the OS. 
+        Mpool is empty. Allocating from the OS.
        */
       if (mpool_allocate (mpool, mpool->increase_step) == -1)
         {
@@ -116,7 +116,7 @@ allocatable* mpool_take_obj (mpool* mpool)
             }
         }
     }
-  
+
   return obj;
 }
 
@@ -136,7 +136,7 @@ int mpool_return_obj (mpool* mpool, allocatable* item)
       fprintf (stderr, "%s - wrong input\n", __func__);
       return -1;
     }
-	
+
   return mpool_add (mpool, item);
 }
 
@@ -153,28 +153,28 @@ int mpool_return_obj (mpool* mpool, allocatable* item)
 int mpool_init (mpool* mpool, size_t object_size, int num_obj)
 {
   if (! mpool || ! object_size || num_obj < 0)
-   {
-     fprintf (stderr, "%s - wrong input\n", __func__);
-     return -1;
-   }
+ {
+   fprintf (stderr, "%s - wrong input\n", __func__);
+   return -1;
+ }
 
   /* Figure out the page size */
   if (os_free_list_chunk_size < 0)
+  {
+    int pagesize = -1;
+    if ((pagesize = getpagesize()) == -1)
     {
-      int pagesize = -1;
-      if ((pagesize = getpagesize()) == -1)
-        {
-          fprintf (stderr, "%s - warning: getpagesize() failed with errno %d\n", 
-                   __func__, errno);
-        }
-      
-      if (pagesize < CL_PAGE_SIZE_MIN)
-        {
-          pagesize = CL_PAGE_SIZE_DEF;
-        }
-
-      os_free_list_chunk_size = (pagesize * 9)/10;
+      fprintf (stderr, "%s - warning: getpagesize() failed with errno %d\n",
+               __func__, errno);
     }
+
+    if (pagesize < CL_PAGE_SIZE_MIN)
+    {
+      pagesize = CL_PAGE_SIZE_DEF;
+    }
+
+    os_free_list_chunk_size = (pagesize * 9)/10;
+  }
 
   /* Alignment as proposed by Michael Moser */
   object_size = (object_size + MPOOL_PTR_ALIGN -1) & (~(MPOOL_PTR_ALIGN - 1));
@@ -187,10 +187,10 @@ int mpool_init (mpool* mpool, size_t object_size, int num_obj)
 
   mpool->increase_step = mpool->free_list_size = 0;
   mpool->obj_size = object_size;
-  
+
   /* Preventing fragmentation */
   mpool->increase_step = os_free_list_chunk_size / mpool->obj_size;
-	
+
   if (mpool_allocate (mpool, num_obj) == -1)
     {
       fprintf (stderr, "%s - mpool_allocate () failed\n", __func__);
@@ -224,17 +224,17 @@ void mpool_free (mpool* mpool)
 
   allocatable** memblock_array = 0;
 
-  if (! (memblock_array = 
+  if (! (memblock_array =
          calloc (mpool->blocks_alloc_num, sizeof (allocatable*))))
     {
       fprintf (stderr, "%s - calloc () of blocks_array failed\n", __func__);
       return;
     }
-	
+
   int memblock_array_index = 0;
 
   /*
-    Iterate through all objects to fetch starts of memblocks and 
+    Iterate through all objects to fetch starts of memblocks and
     write them to the memblock_array
   */
   allocatable* item = 0;
@@ -271,7 +271,7 @@ int mpool_size (mpool* mpool)
 /****************************************************************************************
 * Function name - mpool_allocate
 *
-* Description - Allocates for an initialized pool some additional number of objects 
+* Description - Allocates for an initialized pool some additional number of objects
 *
 * Input -       *mpool - pointer to an initialized mpool
 *               num_obj -  number of objects to be added for a memory pool
@@ -293,16 +293,16 @@ int mpool_allocate (mpool* mpool, size_t num_obj)
 
   // number of allocations, each of about a PAGE_SIZE
   int num_alloc_step = num_obj / mpool->increase_step;
-  
+
   // minimum 1 allocation step should be done
   num_alloc_step = num_alloc_step ? num_alloc_step : 1;
-  
+
   // number of allocated by this function call objects
   int obj_allocated = 0;
-  
+
   // u_char is to enable ANSI-C pointer arithmetics
   unsigned char* chunk;
-  
+
   while (num_alloc_step--)
     {
       chunk = 0;
@@ -316,25 +316,25 @@ int mpool_allocate (mpool* mpool, size_t num_obj)
       else
         {
           mpool->blocks_alloc_num++;
-          
+
           // add to mpool successfully allocated mpool->increase_step number of objects
           //
           int i;
-          
+
           for ( i = 0; i < mpool->increase_step; i++)
             {
               allocatable* item = (allocatable*)(chunk + i*mpool->obj_size);
-              
+
               // The first block (i == 0) we mark as 1, which mean allowed to call free (), others -0
               //
               item->mem_block_start =  i ? 0 : 1;
               mpool_add (mpool, item);
             }
-          
+
           obj_allocated += mpool->increase_step;
         }
     }
-	
+
   if (!obj_allocated)
     {
       fprintf (stderr, "%s - failed to allocate objects\n", __func__);

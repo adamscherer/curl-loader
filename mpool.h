@@ -1,24 +1,24 @@
 /*
-*     mpool.h
-*
-* 2006 Copyright (c) 
-* Robert Iakobashvili, <coroberti@gmail.com>
-* All rights reserved.
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ *     mpool.h
+ *
+ * 2006 Copyright (c)
+ * Robert Iakobashvili, <coroberti@gmail.com>
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #ifndef MPOOL_H
 #define MPOOL_H
@@ -26,50 +26,50 @@
 /*
    Object linkable supplies "linkable" property, when
    inherited.
-*/
+ */
 typedef struct linkable
 {
-  struct linkable* next;
+        struct linkable* next;
 } linkable;
 
 /*
-  Object allocatable supplies "allocatable" property, when
-  inherited.
-*/
+   Object allocatable supplies "allocatable" property, when
+   inherited.
+ */
 typedef struct allocatable
 {
-  struct linkable link;
+        struct linkable link;
 
-  /* 
-   * Don't null the structure as a whole. The field to be managed by
-     an allocator and is important for its internal housekeeping 
-  */
-  int mem_block_start;
+        /*
+         * Don't null the structure as a whole. The field to be managed by
+           an allocator and is important for its internal housekeeping
+         */
+        int mem_block_start;
 } allocatable;
 
 /*
-  Memory pool. 
-  Attention: Non-thread safe, but you may add it.
-*/
+   Memory pool.
+   Attention: Non-thread safe, but you may add it.
+ */
 typedef struct mpool
 {
-  /* Freelist free_list_head */
-  allocatable* free_list_head;
-	
-  /* Freelist size. */
-  int free_list_size;
+        /* Freelist free_list_head */
+        allocatable* free_list_head;
 
-  /* Number of objects for each allocation */
-  int increase_step;
+        /* Freelist size. */
+        int free_list_size;
 
-  /* Number of allocated memory blocks */
-  int blocks_alloc_num;
-	
-  /* Object size */
-  int obj_size;
-	
-  /* Number of allocated objects */
-  int obj_alloc_num;
+        /* Number of objects for each allocation */
+        int increase_step;
+
+        /* Number of allocated memory blocks */
+        int blocks_alloc_num;
+
+        /* Object size */
+        int obj_size;
+
+        /* Number of allocated objects */
+        int obj_alloc_num;
 } mpool;
 
 /****************************************************************************************
@@ -121,7 +121,7 @@ int mpool_allocate (mpool* mpool, size_t num_obj);
 /****************************************************************************************
 * Function name - mpool_mem_release
 *
-* Description - Releases from mpool to OS a specified number of objects. 
+* Description - Releases from mpool to OS a specified number of objects.
 *
 * Input -       *mpool - pointer to an initialized mpool
 *               num_obj -  number of objects to be released from a memory pool

@@ -2369,7 +2369,7 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format, cons
 
                 case URL_S_CLOSE:
                         printf("Convert the variable: %d \n\n", min);
-                        strvalue = &fcd->form_tokens[min] ? &fcd->form_tokens[min] : "";
+                        strvalue = fcd->form_tokens[min] ? fcd->form_tokens[min] : "";
                         printf("Variable value: %s \n\n", strvalue);
                         while (*strvalue)
                         {

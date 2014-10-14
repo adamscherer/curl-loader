@@ -2291,13 +2291,15 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
         long value;
         LDOUBLE fvalue;
         char *strvalue;
+        int min;
+        int max;
         int state;
         int flags;
         int cflags;
         size_t currlen;
 
         state = URL_S_DEFAULT;
-        currlen = flags = cflags = 0;
+        currlen = flags = cflags = min = 0;
         max = -1;
         ch = *format++;
 

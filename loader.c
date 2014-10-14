@@ -158,17 +158,16 @@ int main (int argc, char *argv [])
 
         form_records_cdata* form_records_array = calloc (max_records, sizeof (form_records_cdata));
 
-        strcpy (form_records_array[0]->form_tokens[0], "row1token1");
-        strcpy (form_records_array[0]->form_tokens[1], "row1token2");
-        strcpy (form_records_array[0]->form_tokens[2], "row1token3");
-
-        strcpy (form_records_array[1]->form_tokens[0], "row2token1");
-        strcpy (form_records_array[1]->form_tokens[1], "row2token2");
-        strcpy (form_records_array[1]->form_tokens[2], "row2token3");
-
-        strcpy (form_records_array[2]->form_tokens[0], "row3token1");
-        strcpy (form_records_array[2]->form_tokens[1], "row3token2");
-        strcpy (form_records_array[2]->form_tokens[2], "row3token3");
+        int i;
+        for (i = 0; i < max_records; i++)
+        {
+                form_records_cdata* form_record = &form_records_array[i];
+                strcpy (&form_record->form_tokens[0], "row1token1");
+                strcpy (&form_record->form_tokens[1], "row1token2");
+                strcpy (&form_record->form_tokens[2], "row1token3");
+                strcpy (&form_record->form_tokens[3], "row1token4");
+                strcpy (&form_record->form_tokens[4], "row1token5");
+        }
 
         url_formatter(post_data, post_data_len, form_str);
 
@@ -2321,7 +2320,7 @@ static int create_thr_subbatches (batch_context *bc_arr, int subbatches_num)
         return 0;
 }
 
-static void url_formatter (char *buffer, size_t maxlen, const char *format) {
+static void url_formatter (char *buffer, size_t maxlen, const char *format, const form_records_cdata *fcd) {
         char ch;
         long value;
         char *strvalue;
@@ -2370,7 +2369,7 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
 
                 case URL_S_CLOSE:
                         printf("Convert the variable: %d \n\n", min);
-                        strvalue = "ADAM";
+                        strvalue = fcd->form_tokens[min] ? fcd->form_tokens[min] : "";
                         while (*strvalue)
                         {
                                 url_formatter_append (buffer, &currlen, maxlen, *strvalue++);

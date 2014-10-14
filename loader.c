@@ -2304,13 +2304,13 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
         while (state != URL_S_DONE)
         {
                 if ((ch == '\0') || (currlen >= maxlen))
-                        state = DP_S_DONE;
+                        state = URL_S_DONE;
 
                 switch(state)
                 {
                 case URL_S_DEFAULT:
-                        if (ch == '%')
-                                state = DP_S_FLAGS;
+                        if (ch == '{')
+                                state = URL_S_OPEN;
                         else
                                 url_formatter_append (buffer, &currlen, maxlen, ch);
                         ch = *format++;

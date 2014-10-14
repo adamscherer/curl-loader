@@ -142,7 +142,7 @@ int main (int argc, char *argv [])
 {
         printf("Starting test...\n\n");
 
-        char* form_str = "This is a test.";
+        char* form_str = "This{0}is{0}a{1} {25}test.";
 
         size_t form_string_len = strlen (form_str);
 
@@ -2309,13 +2309,15 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
         long value;
         char *strvalue;
         int min;
+        int max;
         int cnt;
         int state;
         size_t currlen;
-        char* value = "ADAM";
+        char* test = "ADAM";
 
         state = URL_S_DEFAULT;
         currlen = min = cnt = 0;
+        max = maxlen;
         ch = *format++;
 
         while (state != URL_S_DONE)
@@ -2352,9 +2354,9 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
 
                 case URL_S_CLOSE:
                         printf("Convert the variable: %d \n\n", min);
-                        while (*value && (cnt < max))
+                        while (*test && (cnt < max))
                         {
-                                url_formatter_append (buffer, currlen, maxlen, *value++);
+                                url_formatter_append (buffer, currlen, maxlen, *test++);
                                 ++cnt;
                         }
 

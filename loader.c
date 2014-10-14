@@ -2289,7 +2289,6 @@ static int create_thr_subbatches (batch_context *bc_arr, int subbatches_num)
 static void url_formatter (char *buffer, size_t maxlen, const char *format) {
         char ch;
         long value;
-        LDOUBLE fvalue;
         char *strvalue;
         int min;
         int max;

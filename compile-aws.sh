@@ -2,14 +2,14 @@ mkdir obj
 
 # Modify /etc/yum.repos.d/epel.repo. Under the section marked [epel], change enabled=0 to enabled=1.
 
-sudo yum update
-sudo yum install gcc
-sudo yum install patch
-sudo yum install openssl
-sudo yum install openssl-devel
-sudo yum install hiredis-devel
-sudo yum install nodejs npm
-sudo yum install json-c-devel
+#sudo yum update
+#sudo yum install gcc
+#sudo yum install patch
+#sudo yum install openssl
+#sudo yum install openssl-devel
+#sudo yum install hiredis-devel
+#sudo yum install nodejs npm
+#sudo yum install json-c-devel
 
 export OPENSSLDIR=/usr/include/openssl
 

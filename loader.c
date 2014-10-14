@@ -58,6 +58,11 @@
 #include "screen.h"
 #include "cl_alloc.h"
 
+#define URL_S_DEFAULT 0
+#define URL_S_OPEN    1
+#define URL_S_CLOSE   2
+#define URL_S_DONE    3
+
 static int client_tracing_function (CURL *handle,
                                     curl_infotype type,
                                     unsigned char *data,
@@ -88,6 +93,10 @@ static int create_thr_subbatches (batch_context *bc_arr, int subbatches_num);
 static int ip_addr_str_allocate_init (batch_context* bctx,
                                       int client_index,
                                       char** addr_str);
+
+static void url_formatter (char *buffer, size_t maxlen, const char *format);
+
+static void url_formatter_append (char *buffer, size_t *currlen, size_t maxlen, char c);
 
 int stop_loading = 0;
 
@@ -128,6 +137,8 @@ static FILE *create_file (batch_context* bctx, char* fname)
 
 int main (int argc, char *argv [])
 {
+        printf("Starting test...\n\n");
+        /*
         batch_context bc_arr[BATCHES_MAX_NUM];
         pthread_t tid[BATCHES_MAX_NUM];
         int batches_num = 0;
@@ -150,16 +161,18 @@ int main (int argc, char *argv [])
         }
 
         memset(bc_arr, 0, sizeof(bc_arr));
-
+        */
         /*
            Parse the configuration file.
          */
+        /*
         if ((batches_num = parse_config_file (config_file, bc_arr,
                                               sizeof(bc_arr)/sizeof(*bc_arr))) <= 0)
         {
                 fprintf (stderr, "%s - error: parse_config_file () failed.\n", __func__);
                 return -1;
         }
+        */
 
         /*
          * De-facto the support is only for a single batch. However, we are using
@@ -167,16 +180,19 @@ int main (int argc, char *argv [])
          * using sub-batches (a subset of virtual clients).
          * TODO: test env for all batches.
          */
+        /*
         if (test_environment (&bc_arr[0]) == -1)
         {
                 fprintf (stderr, "%s - error: test_environment () - error.\n", __func__);
                 return -1;
         }
+        */
 
         /*
            Add ip-addresses to the loading network interfaces
            and keep them in batch-contexts.
          */
+        /*
         if (create_ip_addrs (bc_arr, batches_num) == -1)
         {
                 fprintf (stderr, "%s - error: create_ip_addrs () failed. \n", __func__);
@@ -206,7 +222,7 @@ int main (int argc, char *argv [])
                 fprintf (stderr, "\n%s - RUNNING LOAD, STARTING THREADS\n\n", __func__);
                 sleep (1);
 
-                /* Init openssl mutexes and pass two callbacks to openssl. */
+                // Init openssl mutexes and pass two callbacks to openssl.
                 if (thread_openssl_setup () == -1)
                 {
                         fprintf (stderr, "%s - error: thread_setup () - failed.\n", __func__);
@@ -215,9 +231,7 @@ int main (int argc, char *argv [])
 
                 create_thr_subbatches (bc_arr, threads_subbatches_num);
 
-                /*
-                   Opening threads for the batches of clients
-                 */
+                //Opening threads for the batches of clients
                 for (i = 0; i < threads_subbatches_num; i++)
                 {
                         bc_arr[i].batch_id = i;
@@ -230,13 +244,13 @@ int main (int argc, char *argv [])
                         }
                         else
                         {
-                                bc_arr[i].thread_id = tid[i]; /* Set the thread-id */
+                                bc_arr[i].thread_id = tid[i]; // Set the thread-id
 
                                 fprintf(stderr, "%s - note: Thread %d, started normally\n", __func__, i);
                         }
                 }
 
-                /* Waiting for all running threads to terminate */
+                // Waiting for all running threads to terminate
                 for (i = 0; i < threads_subbatches_num; i++)
                 {
                         error = pthread_join (tid[i], NULL);
@@ -245,6 +259,7 @@ int main (int argc, char *argv [])
 
                 thread_openssl_cleanup ();
         }
+        */
 
         return 0;
 }
@@ -2269,4 +2284,213 @@ static int create_thr_subbatches (batch_context *bc_arr, int subbatches_num)
         }
 
         return 0;
+}
+
+static void url_formatter (char *buffer, size_t maxlen, const char *format) {
+        char ch;
+        long value;
+        LDOUBLE fvalue;
+        char *strvalue;
+        int state;
+        int flags;
+        int cflags;
+        size_t currlen;
+
+        state = URL_S_DEFAULT;
+        currlen = flags = cflags = 0;
+        max = -1;
+        ch = *format++;
+
+        while (state != DP_S_DONE)
+        {
+                if ((ch == '\0') || (currlen >= maxlen))
+                        state = DP_S_DONE;
+
+                switch(state)
+                {
+                case DP_S_DEFAULT:
+                        if (ch == '%')
+                                state = DP_S_FLAGS;
+                        else
+                                url_formatter_append (buffer, &currlen, maxlen, ch);
+                        ch = *format++;
+                        break;
+                /*
+                case DP_S_FLAGS:
+                        switch (ch)
+                        {
+                        case '-':
+                                flags |= DP_F_MINUS;
+                                ch = *format++;
+                                break;
+                        case '+':
+                                flags |= DP_F_PLUS;
+                                ch = *format++;
+                                break;
+                        case ' ':
+                                flags |= DP_F_SPACE;
+                                ch = *format++;
+                                break;
+                        case '#':
+                                flags |= DP_F_NUM;
+                                ch = *format++;
+                                break;
+                        case '0':
+                                flags |= DP_F_ZERO;
+                                ch = *format++;
+                                break;
+                        default:
+                                state = DP_S_MIN;
+                                break;
+                        }
+                        break;
+                case DP_S_DOT:
+                        if (ch == '.')
+                        {
+                                state = DP_S_MAX;
+                                ch = *format++;
+                        }
+                        else
+                                state = DP_S_MOD;
+                        break;
+                case DP_S_MAX:
+                        if (isdigit(ch))
+                        {
+                                if (max < 0)
+                                        max = 0;
+                                max = 10*max + char_to_int (ch);
+                                ch = *format++;
+                        }
+                        else if (ch == '*')
+                        {
+                                max = va_arg (args, int);
+                                ch = *format++;
+                                state = DP_S_MOD;
+                        }
+                        else
+                                state = DP_S_MOD;
+                        break;
+
+                case URL_S_OPEN
+                        switch (ch)
+                        {
+                        case 'd':
+                        case 'i':
+                                if (cflags == DP_C_SHORT)
+                                        value = va_arg (args, short int);
+                                else if (cflags == DP_C_LONG)
+                                        value = va_arg (args, long int);
+                                else
+                                        value = va_arg (args, int);
+                                fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
+                                break;
+                        case 'o':
+                                flags |= DP_F_UNSIGNED;
+                                if (cflags == DP_C_SHORT)
+                                        value = va_arg (args, unsigned short int);
+                                else if (cflags == DP_C_LONG)
+                                        value = va_arg (args, unsigned long int);
+                                else
+                                        value = va_arg (args, unsigned int);
+                                fmtint (buffer, &currlen, maxlen, value, 8, min, max, flags);
+                                break;
+                        case 'u':
+                                flags |= DP_F_UNSIGNED;
+                                if (cflags == DP_C_SHORT)
+                                        value = va_arg (args, unsigned short int);
+                                else if (cflags == DP_C_LONG)
+                                        value = va_arg (args, unsigned long int);
+                                else
+                                        value = va_arg (args, unsigned int);
+                                fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
+                                break;
+                        case 'X':
+                                flags |= DP_F_UP;
+                        case 'x':
+                                flags |= DP_F_UNSIGNED;
+                                if (cflags == DP_C_SHORT)
+                                        value = va_arg (args, unsigned short int);
+                                else if (cflags == DP_C_LONG)
+                                        value = va_arg (args, unsigned long int);
+                                else
+                                        value = va_arg (args, unsigned int);
+                                fmtint (buffer, &currlen, maxlen, value, 16, min, max, flags);
+                                break;
+                        case 'E':
+                                flags |= DP_F_UP;
+                        case 'e':
+                                if (cflags == DP_C_LDOUBLE)
+                                        fvalue = va_arg (args, LDOUBLE);
+                                else
+                                        fvalue = va_arg (args, double);
+                                break;
+                        case 'G':
+                                flags |= DP_F_UP;
+                        case 'c':
+                                dopr_outch (buffer, &currlen, maxlen, va_arg (args, int));
+                                break;
+                        case 's':
+                                strvalue = va_arg (args, char *);
+                                if (max < 0)
+                                        max = maxlen; // ie, no max
+                                fmtstr (buffer, &currlen, maxlen, strvalue, flags, min, max);
+                                break;
+                        case 'p':
+                                strvalue = va_arg (args, void *);
+                                fmtint (buffer, &currlen, maxlen, (long) strvalue, 16, min, max, flags);
+                                break;
+                        case 'n':
+                                if (cflags == DP_C_SHORT)
+                                {
+                                        short int *num;
+                                        num = va_arg (args, short int *);
+                                        *num = currlen;
+                                }
+                                else if (cflags == DP_C_LONG)
+                                {
+                                        long int *num;
+                                        num = va_arg (args, long int *);
+                                        *num = currlen;
+                                }
+                                else
+                                {
+                                        int *num;
+                                        num = va_arg (args, int *);
+                                        *num = currlen;
+                                }
+                                break;
+                        case '%':
+                                dopr_outch (buffer, &currlen, maxlen, ch);
+                                break;
+                        case 'w':
+                                // not supported yet, treat as next char
+                                ch = *format++;
+                                break;
+                        default:
+                                // Unknown, skip
+                                break;
+                        }
+                        ch = *format++;
+                        state = DP_S_DEFAULT;
+                        flags = cflags = 0;
+                        max = -1;
+                        break;
+                */
+                case URL_S_DONE:
+                        break;
+                default:
+                        // hmm?
+                        break; // some picky compilers need this
+                }
+        }
+        if (currlen < maxlen - 1)
+                buffer[currlen] = '\0';
+        else
+                buffer[maxlen - 1] = '\0';
+}
+
+static void url_formatter_append (char *buffer, size_t *currlen, size_t maxlen, char c)
+{
+        if (*currlen < maxlen)
+                buffer[(*currlen)++] = c;
 }

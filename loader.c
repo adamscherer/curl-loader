@@ -2313,7 +2313,6 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
         int cnt;
         int state;
         size_t currlen;
-        char* test = "ADAM";
 
         state = URL_S_DEFAULT;
         currlen = min = cnt = 0;
@@ -2354,10 +2353,10 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
 
                 case URL_S_CLOSE:
                         printf("Convert the variable: %d \n\n", min);
-                        while (*test && (cnt < max))
+                        strvalue = "ADAM";
+                        while (*strvalue)
                         {
-                                url_formatter_append (buffer, currlen, maxlen, *test++);
-                                ++cnt;
+                                url_formatter_append (buffer, &currlen, maxlen, *strvalue++);
                         }
 
                         ch = *format++;

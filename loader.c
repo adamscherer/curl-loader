@@ -63,6 +63,9 @@
 #define URL_S_CLOSE   2
 #define URL_S_DONE    3
 
+#define char_to_int(p) (p - '0')
+#define MAX(p,q) ((p >= q) ? p : q)
+
 static int client_tracing_function (CURL *handle,
                                     curl_infotype type,
                                     unsigned char *data,
@@ -146,7 +149,7 @@ int main (int argc, char *argv [])
         printf("Form string length: %d \n\n", form_string_len);
 
         size_t post_data_len = form_string_len + 1 +
-                              16 * (64 + 7);
+                               16 * (64 + 7);
 
         char* post_data = (char *) calloc (post_data_len, sizeof (char));
 
@@ -154,40 +157,40 @@ int main (int argc, char *argv [])
 
         printf("Output: %s \n\n", post_data);
         /*
-        batch_context bc_arr[BATCHES_MAX_NUM];
-        pthread_t tid[BATCHES_MAX_NUM];
-        int batches_num = 0;
-        int i = 0, error = 0;
+           batch_context bc_arr[BATCHES_MAX_NUM];
+           pthread_t tid[BATCHES_MAX_NUM];
+           int batches_num = 0;
+           int i = 0, error = 0;
 
-        signal (SIGPIPE, SIG_IGN);
+           signal (SIGPIPE, SIG_IGN);
 
-        if (parse_command_line (argc, argv) == -1)
-        {
+           if (parse_command_line (argc, argv) == -1)
+           {
                 fprintf (stderr,
                          "%s - error: failed parsing of the command line.\n", __func__);
                 return -1;
-        }
+           }
 
-        if (geteuid())
-        {
+           if (geteuid())
+           {
                 fprintf (stderr,
                          "%s - error: lacking root priviledges to run this program.\n", __func__);
                 return -1;
-        }
+           }
 
-        memset(bc_arr, 0, sizeof(bc_arr));
-        */
+           memset(bc_arr, 0, sizeof(bc_arr));
+         */
         /*
            Parse the configuration file.
          */
         /*
-        if ((batches_num = parse_config_file (config_file, bc_arr,
+           if ((batches_num = parse_config_file (config_file, bc_arr,
                                               sizeof(bc_arr)/sizeof(*bc_arr))) <= 0)
-        {
+           {
                 fprintf (stderr, "%s - error: parse_config_file () failed.\n", __func__);
                 return -1;
-        }
-        */
+           }
+         */
 
         /*
          * De-facto the support is only for a single batch. However, we are using
@@ -196,44 +199,44 @@ int main (int argc, char *argv [])
          * TODO: test env for all batches.
          */
         /*
-        if (test_environment (&bc_arr[0]) == -1)
-        {
+           if (test_environment (&bc_arr[0]) == -1)
+           {
                 fprintf (stderr, "%s - error: test_environment () - error.\n", __func__);
                 return -1;
-        }
-        */
+           }
+         */
 
         /*
            Add ip-addresses to the loading network interfaces
            and keep them in batch-contexts.
          */
         /*
-        if (create_ip_addrs (bc_arr, batches_num) == -1)
-        {
+           if (create_ip_addrs (bc_arr, batches_num) == -1)
+           {
                 fprintf (stderr, "%s - error: create_ip_addrs () failed. \n", __func__);
                 return -1;
-        }
-        else
-        {
+           }
+           else
+           {
                 fprintf (stderr,
                          "%s - added IP-addresses to the loading network interface.\n",
                          __func__);
-        }
+           }
 
-        signal (SIGINT, sigint_handler);
+           signal (SIGINT, sigint_handler);
 
-        screen_init ();
+           screen_init ();
 
-        if (!threads_subbatches_num)
-        {
+           if (!threads_subbatches_num)
+           {
                 fprintf (stderr, "\nRUNNING LOAD\n\n");
                 sleep (1);
                 batch_function (&bc_arr[0]);
                 fprintf (stderr, "Exited batch_function\n");
                 screen_release ();
-        }
-        else
-        {
+           }
+           else
+           {
                 fprintf (stderr, "\n%s - RUNNING LOAD, STARTING THREADS\n\n", __func__);
                 sleep (1);
 
@@ -273,8 +276,8 @@ int main (int argc, char *argv [])
                 }
 
                 thread_openssl_cleanup ();
-        }
-        */
+           }
+         */
 
         return 0;
 }
@@ -2306,15 +2309,11 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
         long value;
         char *strvalue;
         int min;
-        int max;
         int state;
-        int flags;
-        int cflags;
         size_t currlen;
 
         state = URL_S_DEFAULT;
-        currlen = flags = cflags = min = 0;
-        max = -1;
+        currlen = min = 0;
         ch = *format++;
 
         while (state != URL_S_DONE)
@@ -2334,9 +2333,7 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
                 case URL_S_OPEN:
                         if (isdigit(ch))
                         {
-                                if (max < 0)
-                                        max = 0;
-                                max = 10*max + char_to_int (ch);
+                                min = 10*min + char_to_int (ch);
                                 ch = *format++;
                         }
                         else if (ch == '}')
@@ -2344,16 +2341,19 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
                                 state = URL_S_CLOSE;
                         }
                         else
+                        {
+                                min = 0;
                                 state = URL_S_DEFAULT;
+                        }
+
                         break;
 
-                case URL_S_CLOSE
-                        print("Convert the variable...");
+                case URL_S_CLOSE:
+                        printf("Convert the variable: %d \n\n", min);
 
                         ch = *format++;
                         state = URL_S_DEFAULT;
-                        flags = cflags = min = 0;
-                        max = -1;
+                        min = 0;
                         break;
                 case URL_S_DONE:
                         break;

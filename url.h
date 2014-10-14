@@ -64,7 +64,7 @@ typedef enum authentication_method
  * tokens/records are available.
  */
 #define FORM_RECORDS_MAX_TOKENS_NUM 16
-#define FORM_RECORDS_TOKEN_MAX_LEN 64
+#define FORM_RECORDS_TOKEN_MAX_LEN 96
 #define FORM_RECORDS_SEQ_NUM_LEN 7 /* Up to 10 000 000 clients */
 
 typedef struct form_records_cdata

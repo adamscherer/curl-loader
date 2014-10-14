@@ -98,7 +98,7 @@ static int ip_addr_str_allocate_init (batch_context* bctx,
                                       int client_index,
                                       char** addr_str);
 
-static void url_formatter (char *buffer, size_t maxlen, const char *format, const form_records_cdata *fcd);
+static void url_formatter (char *buffer, size_t maxlen, const char *format, const form_records_cdata*const fcd);
 
 static void url_formatter_append (char *buffer, size_t *currlen, size_t maxlen, char c);
 
@@ -1172,10 +1172,11 @@ static int init_client_formed_buffer (client_context* cctx,
                         record_index = cctx->client_index;
                 }
 
+                url_formatter(buffer, buffer_len, url->form_str, &url->form_records_array[record_index]);
+                /*
+
                 const form_records_cdata*const fcd = &url->form_records_array[record_index];
 
-                url_formatter(buffer, buffer_len, url->form_str, fcd);
-                /*
                 snprintf (buffer,
                           buffer_len,
                           url->form_str,
@@ -2319,7 +2320,7 @@ static int create_thr_subbatches (batch_context *bc_arr, int subbatches_num)
         return 0;
 }
 
-static void url_formatter (char *buffer, size_t maxlen, const char *format, const form_records_cdata *fcd) {
+static void url_formatter (char *buffer, size_t maxlen, const char *format, const form_records_cdata*const fcd) {
         char ch;
         long value;
         char *strvalue;

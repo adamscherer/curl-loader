@@ -138,6 +138,21 @@ static FILE *create_file (batch_context* bctx, char* fname)
 int main (int argc, char *argv [])
 {
         printf("Starting test...\n\n");
+
+        char* form_str = "This is a test.";
+
+        size_t form_string_len = strlen (form_str);
+
+        printf("Form string length: %d \n\n", form_string_len);
+
+        size_t post_data_len = form_string_len + 1 +
+                              16 * (64 + 7);
+
+        char* post_data = (char *) calloc (post_data_len, sizeof (char));
+
+        url_formatter(post_data, post_data_len, form_str);
+        
+        printf("Output: %s \n\n", url_formatter(post_data);
         /*
         batch_context bc_arr[BATCHES_MAX_NUM];
         pthread_t tid[BATCHES_MAX_NUM];

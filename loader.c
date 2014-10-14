@@ -98,7 +98,7 @@ static int ip_addr_str_allocate_init (batch_context* bctx,
                                       int client_index,
                                       char** addr_str);
 
-static void url_formatter (char *buffer, size_t maxlen, const char *format);
+static void url_formatter (char *buffer, size_t maxlen, const char *format, const form_records_cdata *fcd);
 
 static void url_formatter_append (char *buffer, size_t *currlen, size_t maxlen, char c);
 
@@ -169,7 +169,7 @@ int main (int argc, char *argv [])
                 strcpy (&form_record->form_tokens[4], "row1token5");
         }
 
-        url_formatter(post_data, post_data_len, form_str);
+        url_formatter(post_data, post_data_len, form_str, &form_records_array[0]);
 
         printf("Output: %s \n\n", post_data);
         /*

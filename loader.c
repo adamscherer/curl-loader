@@ -141,72 +141,72 @@ static FILE *create_file (batch_context* bctx, char* fname)
 
 int main (int argc, char *argv [])
 {
-        printf("Starting test...\n\n");
+        /*
+           printf("Starting test...\n\n");
 
-        char* form_str = "This{0}is{0}a{1} {25}test.";
+           char* form_str = "This{0}is{0}a{1} {25}test.";
 
-        size_t form_string_len = strlen (form_str);
+           size_t form_string_len = strlen (form_str);
 
-        printf("Form string length: %d \n\n", form_string_len);
+           printf("Form string length: %d \n\n", form_string_len);
 
-        size_t post_data_len = form_string_len + 1 +
+           size_t post_data_len = form_string_len + 1 +
                                16 * (64 + 7);
 
-        char* post_data = (char *) calloc (post_data_len, sizeof (char));
+           char* post_data = (char *) calloc (post_data_len, sizeof (char));
 
-        const size_t max_records = 3;
+           const size_t max_records = 3;
 
-        form_records_cdata* form_records_array = calloc (max_records, sizeof (form_records_cdata));
+           form_records_cdata* form_records_array = calloc (max_records, sizeof (form_records_cdata));
 
-        int i;
-        for (i = 0; i < max_records; i++)
-        {
+           int i;
+           for (i = 0; i < max_records; i++)
+           {
                 form_records_cdata* form_record = &form_records_array[i];
                 strcpy (&form_record->form_tokens[0], "row1token1");
                 strcpy (&form_record->form_tokens[1], "row1token2");
                 strcpy (&form_record->form_tokens[2], "row1token3");
                 strcpy (&form_record->form_tokens[3], "row1token4");
                 strcpy (&form_record->form_tokens[4], "row1token5");
-        }
+           }
 
-        url_formatter(post_data, post_data_len, form_str, &form_records_array[0]);
+           url_formatter(post_data, post_data_len, form_str, &form_records_array[0]);
 
-        printf("Output: %s \n\n", post_data);
-        /*
-           batch_context bc_arr[BATCHES_MAX_NUM];
-           pthread_t tid[BATCHES_MAX_NUM];
-           int batches_num = 0;
-           int i = 0, error = 0;
+           printf("Output: %s \n\n", post_data);
+         */
 
-           signal (SIGPIPE, SIG_IGN);
+        batch_context bc_arr[BATCHES_MAX_NUM];
+        pthread_t tid[BATCHES_MAX_NUM];
+        int batches_num = 0;
+        int i = 0, error = 0;
 
-           if (parse_command_line (argc, argv) == -1)
-           {
+        signal (SIGPIPE, SIG_IGN);
+
+        if (parse_command_line (argc, argv) == -1)
+        {
                 fprintf (stderr,
                          "%s - error: failed parsing of the command line.\n", __func__);
                 return -1;
-           }
+        }
 
-           if (geteuid())
-           {
+        if (geteuid())
+        {
                 fprintf (stderr,
                          "%s - error: lacking root priviledges to run this program.\n", __func__);
                 return -1;
-           }
+        }
 
-           memset(bc_arr, 0, sizeof(bc_arr));
-         */
+        memset(bc_arr, 0, sizeof(bc_arr));
+
         /*
            Parse the configuration file.
          */
-        /*
-           if ((batches_num = parse_config_file (config_file, bc_arr,
+        if ((batches_num = parse_config_file (config_file, bc_arr,
                                               sizeof(bc_arr)/sizeof(*bc_arr))) <= 0)
-           {
+        {
                 fprintf (stderr, "%s - error: parse_config_file () failed.\n", __func__);
                 return -1;
-           }
-         */
+        }
 
         /*
          * De-facto the support is only for a single batch. However, we are using
@@ -214,45 +214,42 @@ int main (int argc, char *argv [])
          * using sub-batches (a subset of virtual clients).
          * TODO: test env for all batches.
          */
-        /*
-           if (test_environment (&bc_arr[0]) == -1)
-           {
+        if (test_environment (&bc_arr[0]) == -1)
+        {
                 fprintf (stderr, "%s - error: test_environment () - error.\n", __func__);
                 return -1;
-           }
-         */
+        }
 
         /*
            Add ip-addresses to the loading network interfaces
            and keep them in batch-contexts.
          */
-        /*
-           if (create_ip_addrs (bc_arr, batches_num) == -1)
-           {
+        if (create_ip_addrs (bc_arr, batches_num) == -1)
+        {
                 fprintf (stderr, "%s - error: create_ip_addrs () failed. \n", __func__);
                 return -1;
-           }
-           else
-           {
+        }
+        else
+        {
                 fprintf (stderr,
                          "%s - added IP-addresses to the loading network interface.\n",
                          __func__);
-           }
+        }
 
-           signal (SIGINT, sigint_handler);
+        signal (SIGINT, sigint_handler);
 
-           screen_init ();
+        screen_init ();
 
-           if (!threads_subbatches_num)
-           {
+        if (!threads_subbatches_num)
+        {
                 fprintf (stderr, "\nRUNNING LOAD\n\n");
                 sleep (1);
                 batch_function (&bc_arr[0]);
                 fprintf (stderr, "Exited batch_function\n");
                 screen_release ();
-           }
-           else
-           {
+        }
+        else
+        {
                 fprintf (stderr, "\n%s - RUNNING LOAD, STARTING THREADS\n\n", __func__);
                 sleep (1);
 
@@ -292,8 +289,7 @@ int main (int argc, char *argv [])
                 }
 
                 thread_openssl_cleanup ();
-           }
-         */
+        }
 
         return 0;
 }
@@ -1178,11 +1174,14 @@ static int init_client_formed_buffer (client_context* cctx,
 
                 const form_records_cdata*const fcd = &url->form_records_array[record_index];
 
+                url_formatter(buffer, buffer_len, url->form_str, fcd);
+                /*
                 snprintf (buffer,
                           buffer_len,
                           url->form_str,
                           fcd->form_tokens[0],
                           fcd->form_tokens[1] ? fcd->form_tokens[1] : "");
+                */
         }
         break;
 
@@ -2369,7 +2368,8 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format, cons
 
                 case URL_S_CLOSE:
                         printf("Convert the variable: %d \n\n", min);
-                        strvalue = fcd->form_tokens[min] ? fcd->form_tokens[min] : "";
+                        strvalue = &fcd->form_tokens[min] ? &fcd->form_tokens[min] : "";
+                        printf("Variable value: %s \n\n", strvalue);
                         while (*strvalue)
                         {
                                 url_formatter_append (buffer, &currlen, maxlen, *strvalue++);

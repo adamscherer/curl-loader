@@ -56,6 +56,7 @@
 #include "conf.h"
 #include "ssl_thr_lock.h"
 #include "screen.h"
+#include "url.h"
 #include "cl_alloc.h"
 
 #define URL_S_DEFAULT 0
@@ -152,6 +153,22 @@ int main (int argc, char *argv [])
                                16 * (64 + 7);
 
         char* post_data = (char *) calloc (post_data_len, sizeof (char));
+
+        const size_t max_records = 3;
+
+        form_records_cdata* form_records_array = calloc (max_records, sizeof (form_records_cdata));
+
+        strcpy (form_records_array[0]->form_tokens[0], "row1token1");
+        strcpy (form_records_array[0]->form_tokens[1], "row1token2");
+        strcpy (form_records_array[0]->form_tokens[2], "row1token3");
+
+        strcpy (form_records_array[1]->form_tokens[0], "row2token1");
+        strcpy (form_records_array[1]->form_tokens[1], "row2token2");
+        strcpy (form_records_array[1]->form_tokens[2], "row2token3");
+
+        strcpy (form_records_array[2]->form_tokens[0], "row3token1");
+        strcpy (form_records_array[2]->form_tokens[1], "row3token2");
+        strcpy (form_records_array[2]->form_tokens[2], "row3token3");
 
         url_formatter(post_data, post_data_len, form_str);
 

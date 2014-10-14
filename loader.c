@@ -2368,9 +2368,14 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format, cons
                         break;
 
                 case URL_S_CLOSE:
-                        printf("Convert the variable: %d \n\n", min);
+                        fprintf (stderr, "\"%s\" - Convert the variable: %d \n",
+                                 __func__, min);
+
                         strvalue = fcd->form_tokens[min] ? fcd->form_tokens[min] : "";
-                        printf("Variable value: %s \n\n", strvalue);
+
+                        fprintf (stderr, "\"%s\" - Variable value: %s \n",
+                                 __func__, strvalue);
+
                         while (*strvalue)
                         {
                                 url_formatter_append (buffer, &currlen, maxlen, *strvalue++);

@@ -151,8 +151,8 @@ int main (int argc, char *argv [])
         char* post_data = (char *) calloc (post_data_len, sizeof (char));
 
         url_formatter(post_data, post_data_len, form_str);
-        
-        printf("Output: %s \n\n", url_formatter(post_data);
+
+        printf("Output: %s \n\n", post_data);
         /*
         batch_context bc_arr[BATCHES_MAX_NUM];
         pthread_t tid[BATCHES_MAX_NUM];
@@ -2331,45 +2331,7 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
                                 url_formatter_append (buffer, &currlen, maxlen, ch);
                         ch = *format++;
                         break;
-                /*
-                case DP_S_FLAGS:
-                        switch (ch)
-                        {
-                        case '-':
-                                flags |= DP_F_MINUS;
-                                ch = *format++;
-                                break;
-                        case '+':
-                                flags |= DP_F_PLUS;
-                                ch = *format++;
-                                break;
-                        case ' ':
-                                flags |= DP_F_SPACE;
-                                ch = *format++;
-                                break;
-                        case '#':
-                                flags |= DP_F_NUM;
-                                ch = *format++;
-                                break;
-                        case '0':
-                                flags |= DP_F_ZERO;
-                                ch = *format++;
-                                break;
-                        default:
-                                state = DP_S_MIN;
-                                break;
-                        }
-                        break;
-                case DP_S_DOT:
-                        if (ch == '.')
-                        {
-                                state = DP_S_MAX;
-                                ch = *format++;
-                        }
-                        else
-                                state = DP_S_MOD;
-                        break;
-                case DP_S_MAX:
+                case URL_S_OPEN:
                         if (isdigit(ch))
                         {
                                 if (max < 0)
@@ -2377,121 +2339,22 @@ static void url_formatter (char *buffer, size_t maxlen, const char *format) {
                                 max = 10*max + char_to_int (ch);
                                 ch = *format++;
                         }
-                        else if (ch == '*')
+                        else if (ch == '}')
                         {
-                                max = va_arg (args, int);
-                                ch = *format++;
-                                state = DP_S_MOD;
+                                state = URL_S_CLOSE;
                         }
                         else
-                                state = DP_S_MOD;
+                                state = URL_S_DEFAULT;
                         break;
 
-                case URL_S_OPEN
-                        switch (ch)
-                        {
-                        case 'd':
-                        case 'i':
-                                if (cflags == DP_C_SHORT)
-                                        value = va_arg (args, short int);
-                                else if (cflags == DP_C_LONG)
-                                        value = va_arg (args, long int);
-                                else
-                                        value = va_arg (args, int);
-                                fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
-                                break;
-                        case 'o':
-                                flags |= DP_F_UNSIGNED;
-                                if (cflags == DP_C_SHORT)
-                                        value = va_arg (args, unsigned short int);
-                                else if (cflags == DP_C_LONG)
-                                        value = va_arg (args, unsigned long int);
-                                else
-                                        value = va_arg (args, unsigned int);
-                                fmtint (buffer, &currlen, maxlen, value, 8, min, max, flags);
-                                break;
-                        case 'u':
-                                flags |= DP_F_UNSIGNED;
-                                if (cflags == DP_C_SHORT)
-                                        value = va_arg (args, unsigned short int);
-                                else if (cflags == DP_C_LONG)
-                                        value = va_arg (args, unsigned long int);
-                                else
-                                        value = va_arg (args, unsigned int);
-                                fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
-                                break;
-                        case 'X':
-                                flags |= DP_F_UP;
-                        case 'x':
-                                flags |= DP_F_UNSIGNED;
-                                if (cflags == DP_C_SHORT)
-                                        value = va_arg (args, unsigned short int);
-                                else if (cflags == DP_C_LONG)
-                                        value = va_arg (args, unsigned long int);
-                                else
-                                        value = va_arg (args, unsigned int);
-                                fmtint (buffer, &currlen, maxlen, value, 16, min, max, flags);
-                                break;
-                        case 'E':
-                                flags |= DP_F_UP;
-                        case 'e':
-                                if (cflags == DP_C_LDOUBLE)
-                                        fvalue = va_arg (args, LDOUBLE);
-                                else
-                                        fvalue = va_arg (args, double);
-                                break;
-                        case 'G':
-                                flags |= DP_F_UP;
-                        case 'c':
-                                dopr_outch (buffer, &currlen, maxlen, va_arg (args, int));
-                                break;
-                        case 's':
-                                strvalue = va_arg (args, char *);
-                                if (max < 0)
-                                        max = maxlen; // ie, no max
-                                fmtstr (buffer, &currlen, maxlen, strvalue, flags, min, max);
-                                break;
-                        case 'p':
-                                strvalue = va_arg (args, void *);
-                                fmtint (buffer, &currlen, maxlen, (long) strvalue, 16, min, max, flags);
-                                break;
-                        case 'n':
-                                if (cflags == DP_C_SHORT)
-                                {
-                                        short int *num;
-                                        num = va_arg (args, short int *);
-                                        *num = currlen;
-                                }
-                                else if (cflags == DP_C_LONG)
-                                {
-                                        long int *num;
-                                        num = va_arg (args, long int *);
-                                        *num = currlen;
-                                }
-                                else
-                                {
-                                        int *num;
-                                        num = va_arg (args, int *);
-                                        *num = currlen;
-                                }
-                                break;
-                        case '%':
-                                dopr_outch (buffer, &currlen, maxlen, ch);
-                                break;
-                        case 'w':
-                                // not supported yet, treat as next char
-                                ch = *format++;
-                                break;
-                        default:
-                                // Unknown, skip
-                                break;
-                        }
+                case URL_S_CLOSE
+                        print("Convert the variable...");
+
                         ch = *format++;
-                        state = DP_S_DEFAULT;
-                        flags = cflags = 0;
+                        state = URL_S_DEFAULT;
+                        flags = cflags = min = 0;
                         max = -1;
                         break;
-                */
                 case URL_S_DONE:
                         break;
                 default:

@@ -8,11 +8,12 @@ BUILD=$(shell pwd)/build
 # Building of DNS asynch resolving c-ares library.
 #
 CARES_BUILD=$(BUILD)/c-ares
-CARES_VER:=1.7.5
+CARES_VER:=1.10.0
 CARES_MAKE_DIR=$(CARES_BUILD)/c-ares-$(CARES_VER)
 
 CURL_BUILD=$(BUILD)/curl
-CURL_VER:=7.24.0-20120109
+CURL_VER:=7.40.0
+CURL_MAKE_DIR=$(CURL_BUILD)/curl-$(CURL_VER)
 
 LIBEVENT_BUILD=$(BUILD)/libevent
 LIBEVENT_VER:=1.4.14b
@@ -33,7 +34,7 @@ CFLAGS= -W -Wall -Wpointer-arith -pipe \
 	-D_FILE_OFFSET_BITS=64
 
 #
-# Making options: e.g. $make optimize=1 debug=0 profile=1 
+# Making options: e.g. $make optimize=1 debug=0 profile=1
 #
 debug ?= 1
 optimize ?= 1
@@ -61,7 +62,7 @@ endif
 #
 #OPT_FLAGS+= -mtune=pentium4 -mcpu=pentium4
 
-# CPU-tuning flags for Intel core-2 arch as an example. 
+# CPU-tuning flags for Intel core-2 arch as an example.
 # Note, that it is supported only by gcc-4.3 and higher
 #OPT_FLAGS+=  -mtune=core2 -march=core2
 
@@ -84,7 +85,7 @@ LDFLAGS += $(shell pkg-config --libs json)
 LIBS= -lcurl -levent -lz -lssl -lcrypto -lcares -ldl -lpthread -lnsl -lrt -lresolv -lhiredis -ljson
 
 # Include directories
-INCDIR=-I. -I./inc -I$(OPENSSLDIR)/include -I/usr/include/hiredis -I/usr/include/json
+INCDIR=-I. -I./inc -I$(OPENSSLDIR)/include -I/usr/include/json
 
 # Targets
 LIBCARES:=./lib/libcares.a
@@ -118,14 +119,14 @@ tags:
 	etags --members -o $(TAGFILE) *.h *.c
 
 install:
-	mkdir -p $(DESTDIR)/usr/bin 
+	mkdir -p $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)$(MANDIR)/man1
 	mkdir -p $(DESTDIR)$(MANDIR)/man5
 	mkdir -p $(DESTDIR)$(DOCDIR)
 	cp -f curl-loader $(DESTDIR)/usr/bin
-	cp -f doc/curl-loader.1 $(DESTDIR)$(MANDIR)/man1/  
+	cp -f doc/curl-loader.1 $(DESTDIR)$(MANDIR)/man1/
 	cp -f doc/curl-loader-config.5 $(DESTDIR)$(MANDIR)/man5/
-	cp -f doc/* $(DESTDIR)$(DOCDIR) 
+	cp -f doc/* $(DESTDIR)$(DOCDIR)
 	cp -rf conf-examples $(DESTDIR)$(DOCDIR)
 
 $(LIBEVENT):
@@ -148,28 +149,27 @@ $(LIBCARES):
 	cp -pf $(CARES_MAKE_DIR)/include/*.h ./inc
 	cp -pf $(CARES_MAKE_DIR)/lib/libcares.*a ./lib
 
-
 # To enable IPv6 change --disable-ipv6 to --enable-ipv6
 
 $(LIBCURL):
-	cd ./packages; tar jxfv curl-$(CURL_VER).tar.bz2; ln -sf curl-$(CURL_VER) curl; \
-	patch -d curl -p1 < ../patches/curl-trace-info-error.patch
-	mkdir -p $(CURL_BUILD);
-	cd $(CURL_BUILD); ../../packages/curl/configure --prefix=$(CURL_BUILD) \
-	--without-libidn \
-	--without-libssh2 \
-	--disable-ldap \
-	--disable-ipv6 \
-        --enable-thread \
-        --with-random=/dev/urandom \
-        --with-ssl=/usr/include/openssl \
-        --enable-shared=no \
-        --enable-ares=$(CARES_MAKE_DIR) \
-        CFLAGS="$(PROF_FLAG) $(DEBUG_FLAGS) $(OPT_FLAGS) -DCURL_MAX_WRITE_SIZE=4096"
-	make -C $(CURL_BUILD); make -C $(CURL_BUILD)/lib install; make -C $(CURL_BUILD)/include/curl install;
+	mkdir -p $(CURL_BUILD)
+	cd $(CURL_BUILD); tar jxfv ../../packages/curl-$(CURL_VER).tar.bz2; \
+		patch -d curl-$(CURL_VER) -p1 < ../../patches/curl-trace-info-error.patch;
+	cd $(CURL_MAKE_DIR); ./configure \
+		--without-libidn \
+		--without-libssh2 \
+		--disable-ldap \
+		--disable-ipv6 \
+  	--enable-thread \
+    --with-random=/dev/urandom \
+    --with-ssl=/usr/include/openssl \
+    --enable-shared=no \
+    --enable-ares=$(CARES_MAKE_DIR) \
+    CFLAGS="$(PROF_FLAG) $(DEBUG_FLAGS) $(OPT_FLAGS) -DCURL_MAX_WRITE_SIZE=4096"
+	make -C $(CURL_MAKE_DIR); make -C $(CURL_MAKE_DIR)/lib install; make -C $(CURL_MAKE_DIR)/include/curl install;
 	mkdir -p ./inc; mkdir -p ./lib
-	cp -a $(CURL_BUILD)/include/curl ./inc/curl
-	cp -pf $(CURL_BUILD)/lib/libcurl.*a ./lib
+	cp -a $(CURL_MAKE_DIR)/include/curl ./inc/curl
+	cp -pf $(CURL_MAKE_DIR)/lib/libcurl.*a ./lib
 
 
 # Files types rules
@@ -179,4 +179,3 @@ $(LIBCURL):
 
 $(OBJ_DIR)/%.o: %.c
 	$(CC) $(CFLAGS) $(PROF_FLAG) $(OPT_FLAGS) $(DEBUG_FLAGS) $(INCDIR) -c -o $(OBJ_DIR)/$*.o $<
-

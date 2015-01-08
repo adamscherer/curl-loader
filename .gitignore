@@ -1,0 +1,8 @@
+.idea
+.DS_Store
+node_modules
+public/css/generated
+uploads
+*.log
+.collider
+.elasticbeanstalk/

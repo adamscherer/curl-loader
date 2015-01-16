@@ -224,6 +224,12 @@ void stat_appl_delay_add (client_context* cctx, unsigned long resp_timestamp)
                         (cctx->bctx->url_stats[cctx->url_curr_index].appl_delay * cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_points +
                          req_duration) / ++cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_points;
 
+                fprintf (stderr,
+                         "%s - cctx->bctx->url_stats[cctx->url_curr_index]: %d  appl_delay: %d duration: %d.\n", __func__,
+                         cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_points,
+                         cctx->bctx->url_stats[cctx->url_curr_index].appl_delay,
+                         req_duration);
+
                 unsigned long current_min = cctx->bctx->url_stats[cctx->url_curr_index].min_resp;
                 if (req_duration < current_min || current_min == 0) {
                         cctx->bctx->url_stats[cctx->url_curr_index].min_resp = req_duration;
@@ -258,8 +264,15 @@ void stat_appl_delay_2xx_add (client_context* cctx, unsigned long resp_timestamp
                 unsigned long req_duration = (resp_timestamp - cctx->req_sent_timestamp);
 
                 cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx =
-                        (cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx * cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx +
-                         req_duration) / ++cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx;
+                        (cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx * cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx_points +
+                         req_duration) / ++cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx_points;
+
+                fprintf (stderr,
+                         "%s - cctx->bctx->url_stats[cctx->url_curr_index] 2xx: %d  appl_delay: %d duration: %d.\n", __func__,
+                         cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx_points,
+                         cctx->bctx->url_stats[cctx->url_curr_index].appl_delay_2xx,
+                         req_duration);
+
 
                 unsigned long current_min = cctx->bctx->url_stats[cctx->url_curr_index].min_resp_2xx;
                 if (req_duration < current_min || current_min == 0) {

@@ -465,17 +465,7 @@ void dump_final_statistics (client_context* cctx)
         }
 
         dump_clients (cctx);
-        (void)fprintf (stderr, "\nExited. For details look in the files:\n"
-                       "- %s.log for errors and traces;\n"
-                       "- %s.txt for loading statistics;\n"
-                       "- %s.ctx for virtual client based statistics.\n",
-                       bctx->batch_name, bctx->batch_name, bctx->batch_name);
-        if (bctx->dump_opstats)
-                (void)fprintf (stderr,"- %s.ops for operational statistics.\n",
-                               bctx->batch_name);
-        (void)fprintf (stderr,
-                       "Add -v and -u options to the command line for "
-                       "verbose output to %s.log file.\n",bctx->batch_name);
+        (void)fprintf (stderr, "\nExited.\n");
 }
 
 /**************************************************
@@ -505,11 +495,6 @@ char *ascii_time (char *tbuf)
 ****************************************************************************************/
 void dump_snapshot_interval (batch_context* bctx, unsigned long now)
 {
-        if (!stop_loading)
-        {
-                fprintf(stderr, "\033[2J");
-        }
-
         int i;
         int total_current_clients = 0;
 

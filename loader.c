@@ -306,8 +306,6 @@ static void* batch_function (void * batch_data)
 {
         batch_context* bctx = (batch_context *) batch_data;
         FILE* log_file = 0;
-        FILE* statistics_file = 0;
-        FILE* opstats_file = 0;
 
         int rval = -1;
 
@@ -316,44 +314,6 @@ static void* batch_function (void * batch_data)
                 fprintf (stderr,
                          "%s - error: batch_data input is zero.\n", __func__);
                 return NULL;
-        }
-
-        if (!stderr_print_client_msg)
-        {
-                /*
-                   Init batch logfile for the batch client output
-                 */
-                (void)sprintf (bctx->batch_logfile, "/var/run/forever/%s.log", bctx->batch_name);
-                if (!(log_file = create_file(bctx,bctx->batch_logfile)))
-                        return NULL;
-                else
-                {
-                        char tbuf[256];
-                        (void)fprintf(log_file,"# %ld %s",get_tick_count(),ascii_time(tbuf));
-                        (void)fprintf(log_file,
-                                      "# msec_offset cycle_no url_no client_no (ip) indic info\n");
-                }
-        }
-
-        /*
-           Init batch statistics file
-         */
-        (void)sprintf (bctx->batch_statistics, "/var/run/forever/%s.txt", bctx->batch_name);
-        if (!(bctx->statistics_file = statistics_file = create_file(bctx,
-                                                                    bctx->batch_statistics)))
-                return NULL;
-        else
-                print_statistics_header (statistics_file);
-
-        /*
-           Init batch operational statistics file
-         */
-        if (bctx->dump_opstats)
-        {
-                (void)sprintf (bctx->batch_opstats, "/var/run/forever/%s.ops", bctx->batch_name);
-                if (!(bctx->opstats_file = opstats_file = create_file(bctx,
-                                                                      bctx->batch_opstats)))
-                        return NULL;
         }
 
         /*
@@ -399,12 +359,6 @@ cleanup:
 
         if (log_file)
                 fclose (log_file);
-
-        if (statistics_file)
-                fclose (statistics_file);
-
-        if (opstats_file)
-                fclose (opstats_file);
 
         free_batch_data_allocations (bctx);
 
@@ -1566,7 +1520,7 @@ static int init_client_contexts (batch_context* bctx,
                 cctx->url_curr_index = 0; /* Actually zeroed by calloc. */
 
                 /* Set output stream for each client to be either batch logfile or stderr. */
-                cctx->file_output = stderr_print_client_msg ? stderr : log_file;
+                cctx->file_output = stderr;
 
                 /*
                    Set pointer in client to its batch object. The pointer will be used to get
